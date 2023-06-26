@@ -1,0 +1,89 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id                 Int       @default(autoincrement()) @id
+  firstName          String
+  lastName           String
+  email              String    @unique
+  password           String
+  displayName        String
+  posts              Post[]
+  likes              Reaction[]
+  comments           Comment[]
+  followedBy         Follows[] @relation("following")
+  following          Follows[] @relation("follower")
+  createdAt          DateTime  @default(now())
+  updatedAt          DateTime  @updatedAt
+}
+
+model Post {
+  id                 Int       @default(autoincrement()) @id
+  title              String
+  body               String
+  image              String
+  authorId           Int
+  author             User      @relation(fields: [authorId], references: [id])
+  likes              Reaction[]
+  comments           Comment[]
+  categories         Posts_Categories[]
+  createdAt          DateTime  @default(now())
+  updatedAt          DateTime  @updatedAt
+}
+
+model Category {
+  id                  Int      @id @default(autoincrement())
+  name                String
+  posts               Posts_Categories[]
+}
+
+model Posts_Categories {
+  post               Post      @relation(fields: [postId], references: [id])
+  postId             Int
+  category           Category  @relation(fields: [categoryId], references: [id])
+  categoryId         Int
+  assignedAt         DateTime  @default(now())
+  assignedBy         String
+  createdAt          DateTime  @default(now())
+  updatedAt          DateTime  @updatedAt
+
+  @@id([postId, categoryId])
+}
+
+model Follows {
+  follower           User      @relation("follower", fields: [followerId], references: [id])
+  followerId         Int
+  following          User      @relation("following", fields: [followingId], references: [id])
+  followingId        Int
+  createdAt          DateTime  @default(now())
+  updatedAt          DateTime  @updatedAt
+
+  @@id([followerId, followingId])
+}
+
+model Reaction {
+  id                 Int       @default(autoincrement()) @id
+  post               Post      @relation(fields: [postId], references: [id])
+  postId             Int
+  user               User      @relation(fields: [userId], references: [id])
+  userId             Int
+  createdAt          DateTime  @default(now())
+  updatedAt          DateTime  @updatedAt
+}
+
+model Comment {
+  id                 Int       @default(autoincrement()) @id
+  post               Post      @relation(fields: [postId], references: [id])
+  postId             Int
+  body            String
+  user               User      @relation(fields: [userId], references: [id])
+  userId             Int
+  createdAt          DateTime  @default(now())
+  updatedAt          DateTime  @updatedAt
+}
