@@ -7,6 +7,7 @@ export class FollowsService {
 
   async createFollow(createFollowDto) {
     const { followerId, followingId } = createFollowDto;
+    console.log(createFollowDto);
 
     const followerExists = await this.prisma.user.findUnique({ where: { id: followerId } });
     if (!followerExists) {
