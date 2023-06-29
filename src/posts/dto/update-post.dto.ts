@@ -13,10 +13,10 @@ export class UpdatePostDto extends PartialType(CreatePostDto) {
   @IsNotEmpty()
   body?: string;
 
-//   @IsOptional()
-//   @IsNotEmpty()
-//   categories?: string[];
+  // @IsOptional()
+  // @IsNotEmpty()
+  // categories?: string[];
 
-  @IsNotEmpty()
-  authorId: string;
+  @IsString()
+  authorId: any;
 }

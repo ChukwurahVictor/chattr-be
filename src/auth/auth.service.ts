@@ -55,7 +55,13 @@ export class AuthService {
     createUserDto.password = hashedPassword;
 
     const user = await this.prisma.user.create({
-      data: createUserDto,
+      data: {
+        firstName: createUserDto.firstName,
+        lastName: createUserDto.lastName,
+        displayName: createUserDto.displayName,
+        email: createUserDto.email,
+        password: createUserDto.password
+      },
     });
 
     return {
