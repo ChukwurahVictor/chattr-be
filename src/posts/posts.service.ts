@@ -12,18 +12,20 @@ export class PostsService {
   constructor(private prisma: PrismaService) {}
 
   async create(createPostDto) {
-    try {
-      const findAuthor = await this.prisma.user.findUnique({ where: { id: createPostDto.authorId } });
-      if (!findAuthor) {
-        throw new HttpException('Author not found', HttpStatus.NOT_FOUND);
-      }
-  
-      return await this.prisma.post.create({
-        data: createPostDto,
-      });
-    } catch (error) {
-      return error;
+    const findAuthor = await this.prisma.user.findUnique({ where: { id: createPostDto.authorId } });
+    if (!findAuthor) {
+      throw new HttpException('Author not found', HttpStatus.NOT_FOUND);
     }
+
+    const titleExists = await this.prisma.post.findFirst({ where: { title: createPostDto.title } });
+    if (titleExists) {
+      throw new HttpException('Title already exists', HttpStatus.BAD_REQUEST);
+    }
+
+    console.log(createPostDto)
+    return await this.prisma.post.create({
+      data: createPostDto
+    });
   }
 
   async findAllPosts() {
@@ -37,20 +39,17 @@ export class PostsService {
     }
   }
 
-  async findOnePost(id: number) {
-    try {
-      const post = await this.prisma.post.findUnique({ where: { id }, include: { author: true, comments: true } });
-  
-      if (!post) {
-        throw new HttpException('Post not found', HttpStatus.NOT_FOUND);
-      }
-      return post;
-    } catch (error) {
-      return error;
+  async findOnePost(id: string) {
+    const post = await this.prisma.post.findUnique({ where: { id }, include: { author: true, comments: true } });
+
+    if (!post) {
+      throw new HttpException('Post not found', HttpStatus.NOT_FOUND);
     }
+    return post;
+    
   }
 
-  async updatePost(id: number, updatePostDto: UpdatePostDto) {
+  async updatePost(id: string, updatePostDto: UpdatePostDto) {
     try {
       const findAuthor = await this.prisma.user.findUnique({
         where: { id: updatePostDto.authorId },
@@ -68,49 +67,49 @@ export class PostsService {
     }
   }
 
-  async removePost(id: number) {
-    try {
-      const post = await this.prisma.post.findUnique({
-        where: { id },
-      });
-  
-      if (!post) {
-        throw new HttpException('Post not found', HttpStatus.NOT_FOUND);
-      }
-  
-      const deletePost = await this.prisma.$transaction(async (prisma) => {
-        await prisma.comment.deleteMany({
-          where: {
-            postId: id,
-          },
-        });
-  
-        await prisma.reaction.deleteMany({
-          where: {
-            postId: id,
-          },
-        });
-  
-        await prisma.posts_Categories.deleteMany({
-          where: {
-            postId: id,
-          },
-        });
-  
-        const deletedPost = await this.prisma.post.delete({
-          where: {
-            id: id,
-          },
-        });
-  
-        return deletedPost;
-      });
-  
-      if (!deletePost) return 'Error deleting post';
-      return 'Post successfully removed';
-    } catch (error) {
-      return error;
+  async removePost(id: string) {
+    const post = await this.prisma.post.findUnique({
+      where: { id },
+    });
+
+    if (!post) {
+      throw new HttpException('Post not found', HttpStatus.NOT_FOUND);
     }
+
+    const deletePost = await this.prisma.$transaction(async (prisma) => {
+      await prisma.comment.deleteMany({
+        where: {
+          postId: id,
+        },
+      });
+
+      await prisma.reaction.deleteMany({
+        where: {
+          postId: id,
+        },
+      });
+
+      await prisma.posts_Categories.deleteMany({
+        where: {
+          postId: id,
+        },
+      });
+
+      const deletedPost = await this.prisma.post.delete({
+        where: {
+          id: id,
+        },
+      });
+
+      return deletedPost;
+    });
+
+    if (!deletePost) return 'Error deleting post';
+    return 'Post successfully removed';
+  }
+
+  async addPostToCategory(postId: string, categoryId: string) {
+
   }
 
   // async getPostReactions(id: number) {

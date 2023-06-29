@@ -16,7 +16,7 @@ export class UsersService {
     return users;
   }
 
-  async findOneUser(id: number) {
+  async findOneUser(id: string) {
     const user = await this.prisma.user.findUnique({
       where: { id },
       include: { posts: { include: { author: true } }, followedBy: true, following: true },
@@ -29,7 +29,7 @@ export class UsersService {
     return user;
   }
 
-  async updateUser(id: number, updateUserDto: UpdateUserDto) {
+  async updateUser(id: string, updateUserDto: UpdateUserDto) {
     const user = await this.prisma.user.findUnique({
       where: { id }
     });
@@ -42,7 +42,7 @@ export class UsersService {
     });
   }
 
-  async removeUser(id: number) {
+  async removeUser(id: string) {
     const user = await this.prisma.user.findUnique({
       where: { id },
     });
@@ -84,7 +84,7 @@ export class UsersService {
     return 'User successfully removed';
   }
 
-  async getUserPosts(id: number) {
+  async getUserPosts(id: string) {
     const user = await this.prisma.user.findUnique({
       where: { id },
       include: { posts: true },

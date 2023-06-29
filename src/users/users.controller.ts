@@ -18,38 +18,39 @@ export class UsersController {
   }
 
   @Get(':id')
+  @UseGuards(JwtAuthGuard)
   @ResponseMessage('User fetched Successfully')
-  async getSingleUser(@Param('id') id: number) {
-    return this.usersService.findOneUser(+id);
+  async getSingleUser(@Param('id') id: string) {
+    return this.usersService.findOneUser(id);
   }
 
   @Patch()
   @ResponseMessage('User updated Successfully')
-  async updateUser(@Param('id') id: number, @Body() updateUserDto: UpdateUserDto) {
-    return this.usersService.updateUser(+id, updateUserDto);
+  async updateUser(@Param('id') id: string, @Body() updateUserDto: UpdateUserDto) {
+    return this.usersService.updateUser(id, updateUserDto);
   }
 
   @Delete()
   @ResponseMessage('Users removed Successfully')
-  async removeUser(@Param('id') id: number) {
-    return this.usersService.removeUser(+id);
+  async removeUser(@Param('id') id: string) {
+    return this.usersService.removeUser(id);
   }
 
   @Get(':id/posts')
   @ResponseMessage('Users posts fetched Successfully')
-  async getUserPosts(@Param('id') id: number) {
-    return this.usersService.getUserPosts(+id);
+  async getUserPosts(@Param('id') id: string) {
+    return this.usersService.getUserPosts(id);
   }
 
   @Get('reactions')
   @ResponseMessage('Users reactions fetched Successfully')
-  async getUserReactions(id: number) {
+  async getUserReactions(id: string) {
     return 'Fetch user reactions';
   }
 
   @Get('follows')
   @ResponseMessage('Users reactions fetched Successfully')
-  async getUserFollows(id: number) {
+  async getUserFollows(id: string) {
     return 'Fetch user follows';
   }
 }

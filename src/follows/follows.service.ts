@@ -36,7 +36,7 @@ export class FollowsService {
 
   }
 
-  async getFollowing(id: number) {
+  async getFollowing(id: string) {
     const following = await this.prisma.user.findMany({
       where: { id: id },
       include: { following: { include: { following: true} }},
@@ -44,7 +44,7 @@ export class FollowsService {
     return following;
   }
 
-  async getFollowers(id: number) {
+  async getFollowers(id: string) {
     const followers = await this.prisma.user.findMany({ 
       where: { id: id }, 
       include: { followedBy: { include: { follower: true }} } 

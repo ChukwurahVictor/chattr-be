@@ -44,14 +44,16 @@ async function main() {
     //   },
     data: [
       {
-        title: 'Post Three',
+        title: 'Post One',
         content: 'This is a content of post Three',
-        authorId: 1,
+        authorId: '3ad7ffac-f307-4ea4-afd3-e28de2faea26',
+        image: 'https://www.npmjs.com//',
       },
       {
-        title: 'Post Four',
+        title: 'Post Two',
         content: 'This is a content of post Four',
-        authorId: 2,
+        authorId: 'f74e0954-6354-4ed8-8e63-ef0b88c6b7e9',
+        image: 'https://www.npmjs.com//',
       },
     ],
   });
@@ -60,7 +62,7 @@ async function main() {
     data: {
       title: 'Post Three',
       content: 'This is a content of post Three',
-      authorId: 2,
+      authorId: 'f74e0954-6354-4ed8-8e63-ef0b88c6b7e9',
     },
   };
 

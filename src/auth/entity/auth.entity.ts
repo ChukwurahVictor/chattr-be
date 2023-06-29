@@ -2,7 +2,7 @@ import { ApiProperty } from '@nestjs/swagger';
 
 export class AuthEntity {
   user: {
-    id: number,
+    id: string,
     firstName: string;
     lastName: string;
     email: string;

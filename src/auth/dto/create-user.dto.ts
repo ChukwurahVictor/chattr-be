@@ -20,8 +20,8 @@ export class CreateUserDto {
   @MinLength(6)
   password: string;
 
-  @IsString()
-  @IsNotEmpty()
-  @Match('password')
-  confirmPassword: string;
+  // @IsString()
+  // @IsNotEmpty()
+  // @Match('password')
+  // confirmPassword: string;
 }

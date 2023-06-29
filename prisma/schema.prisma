@@ -8,7 +8,7 @@ datasource db {
 }
 
 model User {
-  id                 Int       @default(autoincrement()) @id
+  id                 String       @default(uuid()) @id
   firstName          String
   lastName           String
   email              String    @unique
@@ -24,11 +24,11 @@ model User {
 }
 
 model Post {
-  id                 Int       @default(autoincrement()) @id
+  id                 String    @default(uuid()) @id
   title              String
-  body               String
+  content            String
   image              String
-  authorId           Int
+  authorId           String
   author             User      @relation(fields: [authorId], references: [id])
   likes              Reaction[]
   comments           Comment[]
@@ -38,16 +38,16 @@ model Post {
 }
 
 model Category {
-  id                  Int      @id @default(autoincrement())
+  id                  String       @default(uuid()) @id
   name                String
   posts               Posts_Categories[]
 }
 
 model Posts_Categories {
   post               Post      @relation(fields: [postId], references: [id])
-  postId             Int
+  postId             String
   category           Category  @relation(fields: [categoryId], references: [id])
-  categoryId         Int
+  categoryId         String
   assignedAt         DateTime  @default(now())
   assignedBy         String
   createdAt          DateTime  @default(now())
@@ -58,9 +58,9 @@ model Posts_Categories {
 
 model Follows {
   follower           User      @relation("follower", fields: [followerId], references: [id])
-  followerId         Int
+  followerId         String
   following          User      @relation("following", fields: [followingId], references: [id])
-  followingId        Int
+  followingId        String
   createdAt          DateTime  @default(now())
   updatedAt          DateTime  @updatedAt
 
@@ -68,22 +68,22 @@ model Follows {
 }
 
 model Reaction {
-  id                 Int       @default(autoincrement()) @id
+  id                 String    @default(uuid()) @id
   post               Post      @relation(fields: [postId], references: [id])
-  postId             Int
+  postId             String
   user               User      @relation(fields: [userId], references: [id])
-  userId             Int
+  userId             String
   createdAt          DateTime  @default(now())
   updatedAt          DateTime  @updatedAt
 }
 
 model Comment {
-  id                 Int       @default(autoincrement()) @id
+  id                 String    @default(uuid()) @id
   post               Post      @relation(fields: [postId], references: [id])
-  postId             Int
-  body            String
+  postId             String
+  body               String
   user               User      @relation(fields: [userId], references: [id])
-  userId             Int
+  userId             String
   createdAt          DateTime  @default(now())
   updatedAt          DateTime  @updatedAt
 }

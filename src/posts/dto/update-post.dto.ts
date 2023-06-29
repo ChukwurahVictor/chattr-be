@@ -18,5 +18,5 @@ export class UpdatePostDto extends PartialType(CreatePostDto) {
 //   categories?: string[];
 
   @IsNotEmpty()
-  authorId: number;
+  authorId: string;
 }
