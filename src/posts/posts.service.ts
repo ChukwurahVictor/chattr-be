@@ -2,8 +2,6 @@ import { Injectable, HttpException, HttpStatus } from '@nestjs/common';
 // import { CreatePostDto } from './dto/create-user.dto';
 // import { UpdatePostDto } from './dto/update-user.dto';
 import { PrismaService } from 'src/prisma/prisma.service';
-import { CreatePostDto } from './dto/create-post.dto';
-import { UpdatePostDto } from './dto/update-post.dto';
 
 export const roundsOfHashing = 10;
 
@@ -22,21 +20,29 @@ export class PostsService {
       throw new HttpException('Title already exists', HttpStatus.BAD_REQUEST);
     }
 
+      const category = await this.prisma.category.findFirst({
+        where: { id: createPostDto.category },
+      });
+      if (!category) {
+        return;
+      }
+
     console.log(createPostDto)
-    return await this.prisma.post.create({
+    const post = await this.prisma.post.create({
       data: createPostDto
     });
+
+    await this.prisma.posts_Categories.create({
+      data: { categoryId: category.id, postId: post.id },
+    });
+
   }
 
   async findAllPosts() {
-    try {
-      const posts = await this.prisma.post.findMany({ include: {
-        author: true
-      }});
-      return posts;
-    } catch (error) {
-      return error;
-    }
+    const posts = await this.prisma.post.findMany({ include: {
+      author: true
+    }});
+    return posts;
   }
 
   async findOnePost(id: string) {
@@ -49,22 +55,18 @@ export class PostsService {
     
   }
 
-  async updatePost(id: string, updatePostDto: UpdatePostDto) {
-    try {
-      const findAuthor = await this.prisma.user.findUnique({
-        where: { id: updatePostDto.authorId },
-      });
-      if (!findAuthor) {
-        throw new HttpException('Author not found', HttpStatus.NOT_FOUND);
-      }
-  
-      return await this.prisma.post.update({
-        where: { id },
-        data: updatePostDto,
-      });
-    } catch (error) {
-      return error;
+  async updatePost(id: string, updatePostDto) {
+    const findPost = await this.prisma.post.findUnique({
+      where: { id },
+    });
+    if (!findPost) {
+      throw new HttpException('Author not found', HttpStatus.NOT_FOUND);
     }
+
+    return await this.prisma.post.update({
+      where: { id },
+      data: updatePostDto,
+    });
   }
 
   async removePost(id: string) {
