@@ -20,21 +20,21 @@ export class PostsService {
       throw new HttpException('Title already exists', HttpStatus.BAD_REQUEST);
     }
 
-      const category = await this.prisma.category.findFirst({
-        where: { id: createPostDto.category },
-      });
-      if (!category) {
-        return;
-      }
+      // const category = await this.prisma.category.findFirst({
+      //   where: { id: createPostDto.category },
+      // });
+      // if (!category) {
+      //   return;
+      // }
 
-    console.log(createPostDto)
+    // console.log(createPostDto)
     const post = await this.prisma.post.create({
       data: createPostDto
     });
 
-    await this.prisma.posts_Categories.create({
-      data: { categoryId: category.id, postId: post.id },
-    });
+    // await this.prisma.posts_Categories.create({
+    //   data: { categoryId: category.id, postId: post.id },
+    // });
 
   }
 
