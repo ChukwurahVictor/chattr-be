@@ -11,9 +11,9 @@ export class CreatePostDto {
     @IsString()
     image?: string;
 
-    @IsUUID()
-    @IsNotEmpty()
-    category: string;
+    // @IsUUID()
+    // @IsNotEmpty()
+    // category: string;
 
     @IsUUID()
     @IsNotEmpty()
