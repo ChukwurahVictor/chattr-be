@@ -27,8 +27,7 @@ export class PostsService {
       //   return;
       // }
 
-    // console.log(createPostDto)
-    const post = await this.prisma.post.create({
+    return await this.prisma.post.create({
       data: createPostDto
     });
 
