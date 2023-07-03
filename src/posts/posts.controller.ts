@@ -29,7 +29,6 @@ export class PostsController {
   }
 
   @Get()
-  @UseGuards(JwtAuthGuard)
   @ResponseMessage('Posts fetched Successfully')
   async getPosts() {
     return this.postsService.findAllPosts();
