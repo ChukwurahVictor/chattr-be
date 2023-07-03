@@ -36,7 +36,6 @@ export class PostsController {
   }
 
   @Get(':id')
-  @UseGuards(JwtAuthGuard)
   @ResponseMessage('Post fetched Successfully')
   async getSinglePost(@Param('id') id: string) {
     return this.postsService.findOnePost(id);

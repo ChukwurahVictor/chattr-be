@@ -18,14 +18,12 @@ export class CategoriesController {
   }
 
   @Get()
-  @UseGuards(JwtAuthGuard)
   @ResponseMessage('Categories fetched successfully')
   async getCategories() {
     return await this.categoriesService.getAllCategories();
   }
 
   @Get(':id')
-  @UseGuards(JwtAuthGuard)
   @ResponseMessage('Category fetched successfully')
   async getCategory(@Param('id') id: string) {
     return await this.categoriesService.getACategory(id);
