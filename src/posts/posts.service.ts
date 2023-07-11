@@ -1,9 +1,8 @@
 import { Injectable, HttpException, HttpStatus } from '@nestjs/common';
+import { PrismaService } from 'src/prisma/prisma.service';
+export const roundsOfHashing = 10;
 // import { CreatePostDto } from './dto/create-user.dto';
 // import { UpdatePostDto } from './dto/update-user.dto';
-import { PrismaService } from 'src/prisma/prisma.service';
-
-export const roundsOfHashing = 10;
 
 @Injectable()
 export class PostsService {
@@ -39,7 +38,9 @@ export class PostsService {
 
   async findAllPosts() {
     const posts = await this.prisma.post.findMany({ include: {
-      author: true
+      author: true,
+      comments: true,
+      likes: true,
     }});
     return posts;
   }
