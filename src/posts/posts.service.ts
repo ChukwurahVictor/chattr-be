@@ -37,16 +37,24 @@ export class PostsService {
   }
 
   async findAllPosts() {
-    const posts = await this.prisma.post.findMany({ include: {
-      author: true,
-      comments: true,
-      likes: true,
-    }});
+    const posts = await this.prisma.post.findMany({
+      include: {
+        author: true,
+        comments: true,
+        likes: true,
+      }
+    });
     return posts;
   }
 
   async findOnePost(id: string) {
-    const post = await this.prisma.post.findUnique({ where: { id }, include: { author: true, comments: true } });
+    const post = await this.prisma.post.findUnique({ 
+      where: { id }, 
+      include: { 
+        author: true, 
+        comments: true 
+      } 
+    });
 
     if (!post) {
       throw new HttpException('Post not found', HttpStatus.NOT_FOUND);
