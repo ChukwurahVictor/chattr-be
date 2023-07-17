@@ -9,31 +9,35 @@ export class PostsService {
   constructor(private prisma: PrismaService) {}
 
   async create(createPostDto) {
-    const findAuthor = await this.prisma.user.findUnique({ where: { id: createPostDto.authorId } });
+    const findAuthor = await this.prisma.user.findUnique({
+      where: {
+        id: createPostDto.authorId,
+      },
+    });
     if (!findAuthor) {
       throw new HttpException('Author not found', HttpStatus.NOT_FOUND);
     }
 
-    const titleExists = await this.prisma.post.findFirst({ where: { title: createPostDto.title } });
+    const titleExists = await this.prisma.post.findFirst({
+      where: {
+        title: createPostDto.title,
+      },
+    });
     if (titleExists) {
       throw new HttpException('Title already exists', HttpStatus.BAD_REQUEST);
     }
-
       // const category = await this.prisma.category.findFirst({
       //   where: { id: createPostDto.category },
       // });
       // if (!category) {
       //   return;
       // }
-
     return await this.prisma.post.create({
-      data: createPostDto
+      data: createPostDto,
     });
-
     // await this.prisma.posts_Categories.create({
     //   data: { categoryId: category.id, postId: post.id },
     // });
-
   }
 
   async findAllPosts() {
@@ -42,25 +46,28 @@ export class PostsService {
         author: true,
         comments: true,
         likes: true,
-      }
+      },
     });
     return posts;
   }
 
   async findOnePost(id: string) {
     const post = await this.prisma.post.findUnique({ 
-      where: { id }, 
-      include: { 
-        author: true, 
-        comments: true 
-      } 
+      where: { id },
+      include: {
+        author: true,
+        comments: {
+          include: {
+            user: true,
+          },
+        },
+      },
     });
 
     if (!post) {
       throw new HttpException('Post not found', HttpStatus.NOT_FOUND);
     }
     return post;
-    
   }
 
   async updatePost(id: string, updatePostDto) {
