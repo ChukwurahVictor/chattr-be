@@ -48,8 +48,6 @@ model Posts_Categories {
   postId             String
   category           Category  @relation(fields: [categoryId], references: [id])
   categoryId         String
-  assignedAt         DateTime  @default(now())
-  assignedBy         String
   createdAt          DateTime  @default(now())
   updatedAt          DateTime  @updatedAt
 

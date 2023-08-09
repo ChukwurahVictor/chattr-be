@@ -1,7 +1,8 @@
 import { Injectable, HttpException, HttpStatus } from '@nestjs/common';
+import { CreateCategoryDto } from 'src/categories/dto/create-category.dto';
 import { PrismaService } from 'src/prisma/prisma.service';
+import { CreatePostDto } from './dto/create-post.dto';
 export const roundsOfHashing = 10;
-// import { CreatePostDto } from './dto/create-user.dto';
 // import { UpdatePostDto } from './dto/update-user.dto';
 
 @Injectable()
@@ -9,9 +10,10 @@ export class PostsService {
   constructor(private prisma: PrismaService) {}
 
   async create(createPostDto) {
+    const { authorId, title } = createPostDto;
     const findAuthor = await this.prisma.user.findUnique({
       where: {
-        id: createPostDto.authorId,
+        id: authorId,
       },
     });
     if (!findAuthor) {
@@ -20,24 +22,32 @@ export class PostsService {
 
     const titleExists = await this.prisma.post.findFirst({
       where: {
-        title: createPostDto.title,
+        title,
       },
     });
     if (titleExists) {
       throw new HttpException('Title already exists', HttpStatus.BAD_REQUEST);
     }
-      // const category = await this.prisma.category.findFirst({
-      //   where: { id: createPostDto.category },
-      // });
-      // if (!category) {
-      //   return;
-      // }
-    return await this.prisma.post.create({
+    const category = await this.prisma.category.findFirst({
+      where: { id: createPostDto.categoryId },
+    });
+
+    if (!category) {
+      throw new HttpException('Category not found!', HttpStatus.BAD_REQUEST);
+    }
+
+    const post = await this.prisma.post.create({
       data: createPostDto,
     });
+
     // await this.prisma.posts_Categories.create({
-    //   data: { categoryId: category.id, postId: post.id },
+    //   data: {
+    //     categoryId: createPostDto.categoryId,
+    //     postId: post.id,
+    //   },
     // });
+
+    return 'Post created successfully.';
   }
 
   async findAllPosts() {
@@ -52,7 +62,7 @@ export class PostsService {
   }
 
   async findOnePost(id: string) {
-    const post = await this.prisma.post.findUnique({ 
+    const post = await this.prisma.post.findUnique({
       where: { id },
       include: {
         author: true,
@@ -61,6 +71,7 @@ export class PostsService {
             user: true,
           },
         },
+        likes: true,
       },
     });
 
@@ -122,14 +133,38 @@ export class PostsService {
     });
 
     if (!deletePost) return 'Error deleting post';
+
     return 'Post successfully removed';
   }
 
-  async addPostToCategory(postId: string, categoryId: string) {
+  async addPostToCategory(addPostToCategoryDto) {
+    const { postId, categoryId } = addPostToCategoryDto;
 
+    const findPost = await this.prisma.post.findUnique({
+      where: { id: postId },
+    });
+    if (!findPost)
+      throw new HttpException('Post not found', HttpStatus.NOT_FOUND);
+    const findCategory = await this.prisma.category.findUnique({
+      where: { id: categoryId },
+    });
+    if (!findCategory)
+      throw new HttpException('Category not found', HttpStatus.NOT_FOUND);
+
+    const postExists = await this.prisma.posts_Categories.findFirst({
+      where: { postId, categoryId },
+    });
+
+    if (postExists)
+      throw new HttpException(
+        'Post already belong to category',
+        HttpStatus.BAD_REQUEST,
+      );
+
+    await this.prisma.posts_Categories.create({
+      data: addPostToCategoryDto,
+    });
+
+    return 'Post added successfully';
   }
-
-  // async getPostReactions(id: number) {
-
-  // }
 }

@@ -15,6 +15,7 @@ import { ResponseMessage } from 'src/interceptors/response_message.decorator';
 import { JwtAuthGuard } from 'src/auth/jwt-auth.guard';
 import { CreatePostDto } from './dto/create-post.dto';
 import { UpdatePostDto } from './dto/update-post.dto';
+import { AddPostToCategoryDto } from 'src/categories/dto/add-post-category.dto';
 
 @Controller('posts')
 @UseInterceptors(ResponseInterceptor)
@@ -55,5 +56,12 @@ export class PostsController {
   @ResponseMessage('Posts removed Successfully')
   async removePost(@Param('id') id: string) {
     return this.postsService.removePost(id);
+  }
+
+  @Delete('add-to-category')
+  @UseGuards(JwtAuthGuard)
+  @ResponseMessage('Post added to category Successfully')
+  async addPostToCategory(@Body() addPostToCategoryDto: AddPostToCategoryDto) {
+    return this.postsService.addPostToCategory(addPostToCategoryDto);
   }
 }
