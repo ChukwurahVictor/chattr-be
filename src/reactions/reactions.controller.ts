@@ -6,12 +6,17 @@ import {
   Get,
   Param,
   Delete,
+  ValidationPipe,
+  UsePipes,
 } from '@nestjs/common';
 import { ResponseInterceptor } from 'src/interceptors/response.interceptor';
 import { ResponseMessage } from 'src/interceptors/response_message.decorator';
 import { ReactionsService } from './reactions.service';
 import { CreateReactionDto } from './dto/create-reaction.dto';
+import { ApiTags } from '@nestjs/swagger';
 
+@ApiTags('Reactions')
+@UsePipes(new ValidationPipe())
 @Controller('reactions')
 @UseInterceptors(ResponseInterceptor)
 export class ReactionsController {
@@ -19,7 +24,9 @@ export class ReactionsController {
 
   @Post()
   @ResponseMessage('Reaction created successfully')
-  async createReaction(@Body() createReactionDto: CreateReactionDto) {
+  async createReaction(
+    @Body(ValidationPipe) createReactionDto: CreateReactionDto,
+  ) {
     return await this.reactionsService.create(createReactionDto);
   }
 

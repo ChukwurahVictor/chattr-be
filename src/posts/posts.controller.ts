@@ -8,6 +8,7 @@ import {
   UseInterceptors,
   Param,
   UseGuards,
+  Req,
 } from '@nestjs/common';
 import { PostsService } from './posts.service';
 import { ResponseInterceptor } from 'src/interceptors/response.interceptor';
@@ -16,7 +17,12 @@ import { JwtAuthGuard } from 'src/auth/jwt-auth.guard';
 import { CreatePostDto } from './dto/create-post.dto';
 import { UpdatePostDto } from './dto/update-post.dto';
 import { AddPostToCategoryDto } from 'src/categories/dto/add-post-category.dto';
+import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
+import { User } from '@prisma/client';
+import { GetUser } from 'src/common/decorators/get-user.decorator';
 
+@ApiBearerAuth()
+@ApiTags('Posts')
 @Controller('posts')
 @UseInterceptors(ResponseInterceptor)
 export class PostsController {
@@ -25,8 +31,11 @@ export class PostsController {
   @Post()
   @UseGuards(JwtAuthGuard)
   @ResponseMessage('Post created successfully')
-  async createPost(@Body() createPostDto: CreatePostDto) {
-    return await this.postsService.create(createPostDto);
+  async createPost(
+    @Body() createPostDto: CreatePostDto,
+    @GetUser() user: User,
+  ) {
+    return await this.postsService.create(createPostDto, user);
   }
 
   @Get()

@@ -2,13 +2,13 @@ import { ApiProperty } from '@nestjs/swagger';
 import { IsNotEmpty, IsString } from 'class-validator';
 
 export class CreateReactionDto {
+  @ApiProperty()
   @IsString()
   @IsNotEmpty()
-  @ApiProperty()
   postId: string;
 
+  @ApiProperty()
   @IsString()
   @IsNotEmpty()
-  @ApiProperty()
   userId: string;
 }

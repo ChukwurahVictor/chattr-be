@@ -2,6 +2,8 @@ import { Injectable, HttpException, HttpStatus } from '@nestjs/common';
 import { CreateCategoryDto } from 'src/categories/dto/create-category.dto';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { CreatePostDto } from './dto/create-post.dto';
+import * as moment from 'moment';
+import { User } from '@prisma/client';
 export const roundsOfHashing = 10;
 // import { UpdatePostDto } from './dto/update-user.dto';
 
@@ -9,8 +11,10 @@ export const roundsOfHashing = 10;
 export class PostsService {
   constructor(private prisma: PrismaService) {}
 
-  async create(createPostDto) {
-    const { authorId, title } = createPostDto;
+  async create(createPostDto: CreatePostDto, user: User) {
+    const { categoryId, title, image, content } = createPostDto;
+    const authorId = user.id;
+
     const findAuthor = await this.prisma.user.findUnique({
       where: {
         id: authorId,
@@ -29,7 +33,7 @@ export class PostsService {
       throw new HttpException('Title already exists', HttpStatus.BAD_REQUEST);
     }
     const category = await this.prisma.category.findFirst({
-      where: { id: createPostDto.categoryId },
+      where: { id: categoryId },
     });
 
     if (!category) {
@@ -37,23 +41,41 @@ export class PostsService {
     }
 
     const post = await this.prisma.post.create({
-      data: createPostDto,
+      data: {
+        title,
+        content,
+        image,
+        author: { connect: { id: authorId } },
+        updatedAt: moment().toISOString(),
+      },
     });
 
-    // await this.prisma.posts_Categories.create({
-    //   data: {
-    //     categoryId: createPostDto.categoryId,
-    //     postId: post.id,
-    //   },
-    // });
+    await this.prisma.posts_Categories.create({
+      data: {
+        post: { connect: { id: post.id } },
+        category: { connect: { id: category.id } },
+      },
+    });
 
     return 'Post created successfully.';
   }
 
   async findAllPosts() {
+    const authorFields = this.createSelectObject([
+      'id',
+      'firstName',
+      'lastName',
+      'email',
+      'displayName',
+      'createdAt',
+      'updatedAt',
+    ]);
+
     const posts = await this.prisma.post.findMany({
       include: {
-        author: true,
+        author: {
+          select: authorFields,
+        },
         comments: true,
         likes: true,
       },
@@ -166,5 +188,12 @@ export class PostsService {
     });
 
     return 'Post added successfully';
+  }
+
+  createSelectObject(fields: string[]): Record<string, true> {
+    return fields.reduce((selectObject, field) => {
+      selectObject[field] = true;
+      return selectObject;
+    }, {});
   }
 }

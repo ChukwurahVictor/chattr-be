@@ -1,10 +1,24 @@
-import { Controller, Body, Delete, Get, Patch, Param, UseInterceptors, UseGuards } from '@nestjs/common';
+import {
+  Controller,
+  Body,
+  Delete,
+  Get,
+  Patch,
+  Param,
+  UseInterceptors,
+  UseGuards,
+  UsePipes,
+  ValidationPipe,
+} from '@nestjs/common';
 import { UsersService } from './users.service';
 import { ResponseInterceptor } from 'src/interceptors/response.interceptor';
 import { ResponseMessage } from 'src/interceptors/response_message.decorator';
 import { JwtAuthGuard } from 'src/auth/jwt-auth.guard';
 import { UpdateUserDto } from './dto/update-user.dto';
+import { ApiTags } from '@nestjs/swagger';
 
+@ApiTags('Users')
+@UsePipes(new ValidationPipe())
 @Controller('users')
 @UseInterceptors(ResponseInterceptor)
 export class UsersController {
@@ -26,7 +40,10 @@ export class UsersController {
 
   @Patch()
   @ResponseMessage('User updated Successfully')
-  async updateUser(@Param('id') id: string, @Body() updateUserDto: UpdateUserDto) {
+  async updateUser(
+    @Param('id') id: string,
+    @Body(ValidationPipe) updateUserDto: UpdateUserDto,
+  ) {
     return this.usersService.updateUser(id, updateUserDto);
   }
 

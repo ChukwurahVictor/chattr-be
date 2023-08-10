@@ -1,10 +1,23 @@
-import { Controller, UseInterceptors, UseGuards, Body, Post, Get, Patch, Delete, Param } from '@nestjs/common'
+import {
+  Controller,
+  UseInterceptors,
+  UseGuards,
+  Body,
+  Post,
+  Get,
+  Patch,
+  Delete,
+  Param,
+} from '@nestjs/common';
 import { ResponseInterceptor } from 'src/interceptors/response.interceptor';
 import { ResponseMessage } from 'src/interceptors/response_message.decorator';
 import { JwtAuthGuard } from 'src/auth/jwt-auth.guard';
 import { CategoriesService } from './categories.service';
 import { CreateCategoryDto } from './dto/create-category.dto';
+import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
 
+@ApiBearerAuth()
+@ApiTags('Categories')
 @Controller('categories')
 @UseInterceptors(ResponseInterceptor)
 export class CategoriesController {
