@@ -1,9 +1,15 @@
-import { Injectable, HttpException, HttpStatus } from '@nestjs/common';
+import {
+  Injectable,
+  HttpException,
+  HttpStatus,
+  ForbiddenException,
+} from '@nestjs/common';
 import { CreateCategoryDto } from 'src/categories/dto/create-category.dto';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { CreatePostDto } from './dto/create-post.dto';
 import * as moment from 'moment';
 import { User } from '@prisma/client';
+import { UpdatePostDto } from './dto/update-post.dto';
 export const roundsOfHashing = 10;
 // import { UpdatePostDto } from './dto/update-user.dto';
 
@@ -65,15 +71,7 @@ export class PostsService {
   }
 
   async findAllPosts() {
-    const authorFields = this.createSelectObject([
-      'id',
-      'firstName',
-      'lastName',
-      'email',
-      'displayName',
-      'createdAt',
-      'updatedAt',
-    ]);
+    const authorFields = this.removePasswordForAuthorSelect();
 
     const posts = await this.prisma.post.findMany({
       include: {
@@ -88,10 +86,13 @@ export class PostsService {
   }
 
   async findOnePost(id: string) {
+    const authorFields = this.removePasswordForAuthorSelect();
     const post = await this.prisma.post.findUnique({
       where: { id },
       include: {
-        author: true,
+        author: {
+          select: authorFields,
+        },
         comments: {
           include: {
             user: true,
@@ -107,17 +108,33 @@ export class PostsService {
     return post;
   }
 
-  async updatePost(id: string, updatePostDto) {
+  async updatePost(id: string, updatePostDto: UpdatePostDto, user: User) {
+    const { ...data } = updatePostDto;
+    const authorId = user.id;
+
     const findPost = await this.prisma.post.findUnique({
       where: { id },
     });
+    console.log(
+      '🚀 ~ file: posts.service.ts:110 ~ PostsService ~ updatePost ~ findPost:',
+      findPost,
+    );
     if (!findPost) {
-      throw new HttpException('Author not found', HttpStatus.NOT_FOUND);
+      throw new HttpException('Post not found', HttpStatus.NOT_FOUND);
+    }
+
+    if (findPost.authorId !== authorId) {
+      throw new ForbiddenException(
+        'You do not have permission to edit this post.',
+      );
     }
 
     return await this.prisma.post.update({
       where: { id },
-      data: updatePostDto,
+      data: {
+        ...data,
+        updatedAt: moment().toISOString(),
+      },
     });
   }
 
@@ -194,8 +211,18 @@ export class PostsService {
     return 'Post added successfully';
   }
 
-  createSelectObject(fields: string[]): Record<string, true> {
-    return fields.reduce((selectObject, field) => {
+  removePasswordForAuthorSelect(): Record<string, true> {
+    const authorFields = [
+      'id',
+      'firstName',
+      'lastName',
+      'email',
+      'displayName',
+      'createdAt',
+      'updatedAt',
+    ];
+
+    return authorFields.reduce((selectObject, field) => {
       selectObject[field] = true;
       return selectObject;
     }, {});

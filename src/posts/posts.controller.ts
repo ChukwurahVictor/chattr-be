@@ -9,6 +9,8 @@ import {
   Param,
   UseGuards,
   Req,
+  ValidationPipe,
+  UsePipes,
 } from '@nestjs/common';
 import { PostsService } from './posts.service';
 import { ResponseInterceptor } from 'src/interceptors/response.interceptor';
@@ -23,6 +25,7 @@ import { GetUser } from 'src/common/decorators/get-user.decorator';
 
 @ApiBearerAuth()
 @ApiTags('Posts')
+@UsePipes(new ValidationPipe())
 @Controller('posts')
 @UseInterceptors(ResponseInterceptor)
 export class PostsController {
@@ -32,7 +35,7 @@ export class PostsController {
   @UseGuards(JwtAuthGuard)
   @ResponseMessage('Post created successfully')
   async createPost(
-    @Body() createPostDto: CreatePostDto,
+    @Body(ValidationPipe) createPostDto: CreatePostDto,
     @GetUser() user: User,
   ) {
     return await this.postsService.create(createPostDto, user);
@@ -55,9 +58,10 @@ export class PostsController {
   @ResponseMessage('Post updated Successfully')
   async updatePost(
     @Param('id') id: string,
-    @Body() updatePostDto: UpdatePostDto,
+    @Body(ValidationPipe) updatePostDto: UpdatePostDto,
+    @GetUser() user: User,
   ) {
-    return this.postsService.updatePost(id, updatePostDto);
+    return this.postsService.updatePost(id, updatePostDto, user);
   }
 
   @Delete(':id')
@@ -70,7 +74,9 @@ export class PostsController {
   @Delete('add-to-category')
   @UseGuards(JwtAuthGuard)
   @ResponseMessage('Post added to category Successfully')
-  async addPostToCategory(@Body() addPostToCategoryDto: AddPostToCategoryDto) {
+  async addPostToCategory(
+    @Body(ValidationPipe) addPostToCategoryDto: AddPostToCategoryDto,
+  ) {
     return this.postsService.addPostToCategory(addPostToCategoryDto);
   }
 }
