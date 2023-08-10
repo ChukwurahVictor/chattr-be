@@ -22,14 +22,14 @@ export class AuthController {
   constructor(private readonly authService: AuthService) {}
 
   @Post('signup')
-  @ResponseMessage('User signed up successfully')
+  @ResponseMessage({ message: 'User signed up successfully' })
   @ApiOkResponse({ type: AuthEntity })
   signup(@Body(ValidationPipe) createUserDto: CreateUserDto) {
     return this.authService.signup(createUserDto);
   }
 
   @Post('login')
-  @ResponseMessage('Login successful')
+  @ResponseMessage({ message: 'Login successful' })
   @ApiOkResponse({ type: AuthEntity })
   login(@Body(ValidationPipe) loginDto: LoginDto) {
     return this.authService.login(loginDto);

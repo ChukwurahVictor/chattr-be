@@ -4,25 +4,32 @@ import { CreateUserDto } from './dto/create-user.dto';
 import { PrismaService } from 'src/prisma/prisma.service';
 import * as bcrypt from 'bcrypt';
 import { UpdateUserDto } from './dto/update-user.dto';
-
-
+import { AppUtilities } from 'src/app.utilities';
 
 @Injectable()
 export class UsersService {
   constructor(private prisma: PrismaService) {}
 
   async findAllUsers() {
-    const users = await this.prisma.user.findMany();
-    return users;
+    const fields = AppUtilities.removePasswordForAuthorSelect();
+    const users = await this.prisma.user.findMany({
+      include: {
+        followedBy: { include: { follower: { select: fields } } },
+        following: { include: { following: { select: fields } } },
+      },
+    });
+    const user = AppUtilities.removeSensitiveData(users, 'password');
+    return user;
   }
 
   async findOneUser(id: string) {
+    const fields = AppUtilities.removePasswordForAuthorSelect();
     const user = await this.prisma.user.findUnique({
       where: { id },
       include: {
         posts: { include: { author: true, comments: true, likes: true } },
-        followedBy: { include: { follower: true } },
-        following: { include: { following: true } },
+        followedBy: { include: { follower: { select: fields } } },
+        following: { include: { following: { select: fields } } },
       },
     });
 
@@ -30,12 +37,15 @@ export class UsersService {
       throw new HttpException('User not found', HttpStatus.NOT_FOUND);
     }
 
-    return user;
+    const pwd = 'password';
+    const { [pwd]: _, ...usr } = user;
+
+    return { ...usr };
   }
 
   async updateUser(id: string, updateUserDto: UpdateUserDto) {
     const user = await this.prisma.user.findUnique({
-      where: { id }
+      where: { id },
     });
     if (!user) {
       throw new HttpException('User not found', HttpStatus.NOT_FOUND);
@@ -97,7 +107,23 @@ export class UsersService {
     if (!user) {
       throw new HttpException('User not found', HttpStatus.NOT_FOUND);
     }
+    const pwd = 'password';
+    const { [pwd]: _, ...usr } = user;
+    return { ...usr };
+  }
 
-    return user;
+  async getUserFollows(id: string) {
+    const user = await this.prisma.user.findUnique({
+      where: { id },
+      include: { following: true },
+    });
+
+    if (!user) {
+      throw new HttpException('User not found', HttpStatus.NOT_FOUND);
+    }
+
+    const pwd = 'password';
+    const { [pwd]: _, ...usr } = user;
+    return { ...usr };
   }
 }

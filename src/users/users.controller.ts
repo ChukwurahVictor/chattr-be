@@ -15,8 +15,9 @@ import { ResponseInterceptor } from 'src/interceptors/response.interceptor';
 import { ResponseMessage } from 'src/interceptors/response_message.decorator';
 import { JwtAuthGuard } from 'src/auth/jwt-auth.guard';
 import { UpdateUserDto } from './dto/update-user.dto';
-import { ApiTags } from '@nestjs/swagger';
+import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
 
+@ApiBearerAuth()
 @ApiTags('Users')
 @UsePipes(new ValidationPipe())
 @Controller('users')
@@ -26,20 +27,20 @@ export class UsersController {
 
   @Get()
   @UseGuards(JwtAuthGuard)
-  @ResponseMessage('Users fetched Successfully')
+  @ResponseMessage({ message: 'Users fetched Successfully' })
   async getUsers() {
     return this.usersService.findAllUsers();
   }
 
   @Get(':id')
   @UseGuards(JwtAuthGuard)
-  @ResponseMessage('User fetched Successfully')
+  @ResponseMessage({ message: 'User fetched Successfully' })
   async getSingleUser(@Param('id') id: string) {
     return this.usersService.findOneUser(id);
   }
 
   @Patch()
-  @ResponseMessage('User updated Successfully')
+  @ResponseMessage({ message: 'User updated Successfully' })
   async updateUser(
     @Param('id') id: string,
     @Body(ValidationPipe) updateUserDto: UpdateUserDto,
@@ -48,26 +49,26 @@ export class UsersController {
   }
 
   @Delete()
-  @ResponseMessage('Users removed Successfully')
+  @ResponseMessage({ message: 'Users removed Successfully' })
   async removeUser(@Param('id') id: string) {
     return this.usersService.removeUser(id);
   }
 
   @Get(':id/posts')
-  @ResponseMessage('Users posts fetched Successfully')
+  @ResponseMessage({ message: 'Users posts fetched Successfully' })
   async getUserPosts(@Param('id') id: string) {
     return this.usersService.getUserPosts(id);
   }
 
   @Get('reactions')
-  @ResponseMessage('Users reactions fetched Successfully')
-  async getUserReactions(id: string) {
+  @ResponseMessage({ message: 'Users reactions fetched Successfully' })
+  async getUserReactions(@Param('id') id: string) {
     return 'Fetch user reactions';
   }
 
-  @Get('follows')
-  @ResponseMessage('Users reactions fetched Successfully')
-  async getUserFollows(id: string) {
-    return 'Fetch user follows';
+  @Get('/:id/follows')
+  @ResponseMessage({ message: 'Users follows fetched Successfully' })
+  async getUserFollows(@Param('id') id: string) {
+    return this.usersService.getUserFollows(id);
   }
 }

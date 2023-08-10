@@ -8,8 +8,9 @@ import { CreateCategoryDto } from 'src/categories/dto/create-category.dto';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { CreatePostDto } from './dto/create-post.dto';
 import * as moment from 'moment';
-import { User } from '@prisma/client';
+import { PrismaClient, User } from '@prisma/client';
 import { UpdatePostDto } from './dto/update-post.dto';
+import { AppUtilities } from 'src/app.utilities';
 export const roundsOfHashing = 10;
 // import { UpdatePostDto } from './dto/update-user.dto';
 
@@ -30,14 +31,6 @@ export class PostsService {
       throw new HttpException('Author not found', HttpStatus.NOT_FOUND);
     }
 
-    const titleExists = await this.prisma.post.findFirst({
-      where: {
-        title,
-      },
-    });
-    if (titleExists) {
-      throw new HttpException('Title already exists', HttpStatus.BAD_REQUEST);
-    }
     const category = await this.prisma.category.findFirst({
       where: { id: categoryId },
     });
@@ -71,7 +64,7 @@ export class PostsService {
   }
 
   async findAllPosts() {
-    const authorFields = this.removePasswordForAuthorSelect();
+    const authorFields = AppUtilities.removePasswordForAuthorSelect();
 
     const posts = await this.prisma.post.findMany({
       include: {
@@ -86,7 +79,7 @@ export class PostsService {
   }
 
   async findOnePost(id: string) {
-    const authorFields = this.removePasswordForAuthorSelect();
+    const authorFields = AppUtilities.removePasswordForAuthorSelect();
     const post = await this.prisma.post.findUnique({
       where: { id },
       include: {
@@ -115,10 +108,6 @@ export class PostsService {
     const findPost = await this.prisma.post.findUnique({
       where: { id },
     });
-    console.log(
-      '🚀 ~ file: posts.service.ts:110 ~ PostsService ~ updatePost ~ findPost:',
-      findPost,
-    );
     if (!findPost) {
       throw new HttpException('Post not found', HttpStatus.NOT_FOUND);
     }
@@ -150,7 +139,10 @@ export class PostsService {
     const deletePost = await this.prisma.$transaction(async (prisma) => {
       await prisma.comment.deleteMany({
         where: {
-          postId: id,
+          OR: [
+            { postId: id },
+            { post: { authorId: post.authorId } }, // Deletes comments from the author
+          ],
         },
       });
 
@@ -166,16 +158,18 @@ export class PostsService {
         },
       });
 
-      const deletedPost = await this.prisma.post.delete({
+      const deletedPost = await prisma.post.delete({
         where: {
-          id: id,
+          id,
         },
       });
 
       return deletedPost;
     });
 
-    if (!deletePost) return 'Error deleting post';
+    if (!deletePost) {
+      return 'Error deleting post';
+    }
 
     return 'Post successfully removed';
   }
@@ -209,22 +203,5 @@ export class PostsService {
     });
 
     return 'Post added successfully';
-  }
-
-  removePasswordForAuthorSelect(): Record<string, true> {
-    const authorFields = [
-      'id',
-      'firstName',
-      'lastName',
-      'email',
-      'displayName',
-      'createdAt',
-      'updatedAt',
-    ];
-
-    return authorFields.reduce((selectObject, field) => {
-      selectObject[field] = true;
-      return selectObject;
-    }, {});
   }
 }

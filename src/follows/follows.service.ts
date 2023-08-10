@@ -1,32 +1,49 @@
-import { Injectable, HttpException, HttpStatus } from '@nestjs/common';
+import {
+  Injectable,
+  HttpException,
+  HttpStatus,
+  BadRequestException,
+} from '@nestjs/common';
 import { PrismaService } from 'src/prisma/prisma.service';
+import { CreateFollowDto } from './dto/create-follow.dto';
+import { User } from '@prisma/client';
+import { AppUtilities } from 'src/app.utilities';
 
 @Injectable()
 export class FollowsService {
   constructor(private prisma: PrismaService) {}
 
-  async createFollow(createFollowDto) {
-    const { followerId, followingId } = createFollowDto;
+  async createFollow(id: string, follower: User) {
+    const data = AppUtilities.removePasswordForAuthorSelect();
+    const followerId = follower.id;
 
     const followerExists = await this.prisma.user.findUnique({
       where: {
         id: followerId,
       },
     });
+
     if (!followerExists) {
       throw new HttpException('Follower not found', HttpStatus.NOT_FOUND);
     }
 
     const followingExists = await this.prisma.user.findUnique({
-      where: { id: followingId },
+      where: { id },
     });
+
     if (!followingExists) {
       throw new HttpException('Following not found', HttpStatus.NOT_FOUND);
     }
 
+    if (id === followerId)
+      throw new BadRequestException(
+        'You cannot follow yourself. Please select a different user to follow.',
+      );
+
     const alreadyFollowing = await this.prisma.follows.findFirst({
-      where: { followerId: followerId, followingId: followingId },
+      where: { followerId: followerId, followingId: id },
     });
+
     if (alreadyFollowing) {
       throw new HttpException(
         'You already follow this user',
@@ -35,14 +52,36 @@ export class FollowsService {
     }
 
     return await this.prisma.follows.create({
-      data: createFollowDto,
+      data: {
+        following: { connect: { id } },
+        follower: { connect: { id: followerId } },
+      },
+      select: { following: { select: data } },
     });
   }
 
-  async unFollow(id: string) {
-    const unFollow = await this.prisma.follows.findFirst({
-      where: { followerId: id },
+  async unFollow(id: string, follower: User) {
+    const data = AppUtilities.removePasswordForAuthorSelect();
+    const isFollowing = await this.prisma.follows.findFirst({
+      where: { followerId: follower.id, followingId: id },
+      select: { following: { select: data } },
     });
+
+    if (!isFollowing) {
+      throw new BadRequestException(
+        'You are currently not following this user',
+      );
+    }
+
+    const deleteUser = await this.prisma.follows.delete({
+      where: {
+        followerId_followingId: { followerId: follower.id, followingId: id },
+      },
+    });
+
+    return {
+      wasFollowing: isFollowing,
+    };
   }
 
   async getFollowing(id: string) {

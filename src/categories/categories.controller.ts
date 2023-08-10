@@ -25,33 +25,33 @@ export class CategoriesController {
 
   @Post()
   @UseGuards(JwtAuthGuard)
-  @ResponseMessage('Category created successfully')
+  @ResponseMessage({ message: 'Category created successfully' })
   async createCategory(@Body() createCategoryDto: CreateCategoryDto) {
     return await this.categoriesService.create(createCategoryDto);
   }
 
   @Get()
-  @ResponseMessage('Categories fetched successfully')
+  @ResponseMessage({ message: 'Categories fetched successfully' })
   async getCategories() {
     return await this.categoriesService.getAllCategories();
   }
 
   @Get(':id')
-  @ResponseMessage('Category fetched successfully')
+  @ResponseMessage({ message: 'Category fetched successfully' })
   async getCategory(@Param('id') id: string) {
     return await this.categoriesService.getACategory(id);
   }
 
   @Patch()
   @UseGuards(JwtAuthGuard)
-  @ResponseMessage('Category updated successfully')
+  @ResponseMessage({ message: 'Category updated successfully' })
   async updateCategory() {
     return await this.categoriesService.updateCategory();
   }
 
   @Delete()
   @UseGuards(JwtAuthGuard)
-  @ResponseMessage('Category deleted successfully')
+  @ResponseMessage({ message: 'Category deleted successfully' })
   async removeCategory() {
     return await this.categoriesService.removeCategory();
   }
