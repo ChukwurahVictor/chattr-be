@@ -48,6 +48,7 @@ export class PostsService {
         author: { connect: { id: authorId } },
         updatedAt: moment().toISOString(),
       },
+      include: { author: true },
     });
 
     await this.prisma.posts_Categories.create({
@@ -57,7 +58,10 @@ export class PostsService {
       },
     });
 
-    return 'Post created successfully.';
+    return {
+      message: 'Post created successfully',
+      post,
+    };
   }
 
   async findAllPosts() {

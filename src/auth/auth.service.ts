@@ -9,6 +9,7 @@ import { JwtService } from '@nestjs/jwt';
 import { AuthEntity } from './entity/auth.entity';
 import * as bcrypt from 'bcrypt';
 import { LoginDto } from './dto/login.dto';
+import { CreateUserDto } from './dto/create-user.dto';
 
 export const roundsOfHashing = 10;
 
@@ -47,9 +48,11 @@ export class AuthService {
     };
   }
 
-  async signup(createUserDto) {
+  async signup(createUserDto: CreateUserDto) {
+    // eslint-disable-next-line prefer-const
+    let { email, password, confirmPassword, ...data } = createUserDto;
     const userExists = await this.prisma.user.findUnique({
-      where: { email: createUserDto.email },
+      where: { email },
     });
 
     // If user is found, throw an error
@@ -59,30 +62,28 @@ export class AuthService {
       );
     }
 
-    const hashedPassword = await bcrypt.hash(
-      createUserDto.password,
-      roundsOfHashing,
-    );
+    if (password !== confirmPassword) {
+      throw new BadRequestException('Passwords do not match');
+    }
 
-    createUserDto.password = hashedPassword;
+    const hashedPassword = await bcrypt.hash(password, roundsOfHashing);
+
+    password = hashedPassword;
 
     const user = await this.prisma.user.create({
       data: {
-        firstName: createUserDto.firstName,
-        lastName: createUserDto.lastName,
-        displayName: createUserDto.displayName,
-        email: createUserDto.email,
-        password: createUserDto.password,
+        email,
+        password,
+        ...data,
       },
     });
 
+    const pwd = 'password';
+    const { [pwd]: _, ...usr } = user;
+
     return {
       user: {
-        id: user.id,
-        firstName: user.firstName,
-        lastName: user.lastName,
-        email: user.email,
-        displayName: user.displayName,
+        ...usr,
       },
       // accessToken: this.jwtService.sign({ userId: user.id }),
     };

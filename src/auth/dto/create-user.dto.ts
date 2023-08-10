@@ -1,5 +1,4 @@
 import { IsEmail, IsNotEmpty, IsString, MinLength } from 'class-validator';
-import { Match } from '../../common/decorators/match.decorator';
 import { ApiProperty } from '@nestjs/swagger';
 
 export class CreateUserDto {
@@ -26,8 +25,8 @@ export class CreateUserDto {
   @MinLength(6)
   password: string;
 
-  // @IsString()
-  // @IsNotEmpty()
-  // @Match('password')
-  // confirmPassword: string;
+  @ApiProperty()
+  @IsString()
+  @IsNotEmpty()
+  confirmPassword: string;
 }
