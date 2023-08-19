@@ -1,4 +1,9 @@
-import { Injectable, HttpException, HttpStatus } from '@nestjs/common';
+import {
+  Injectable,
+  HttpException,
+  HttpStatus,
+  ConflictException,
+} from '@nestjs/common';
 import { PrismaService } from 'src/prisma/prisma.service';
 
 @Injectable()
@@ -12,10 +17,7 @@ export class CategoriesService {
       },
     });
     if (categoryExists) {
-      throw new HttpException(
-        'Category already exists.',
-        HttpStatus.BAD_REQUEST,
-      );
+      throw new ConflictException('Category already exists.');
     }
     return await this.prisma.category.create({ data: createCategoryDto });
   }
@@ -34,7 +36,9 @@ export class CategoriesService {
       const category = await this.prisma.category.findUnique({
         where: { id },
         include: {
-          posts: true,
+          posts: {
+            select: { post: true },
+          },
         },
       });
       if (!category) {

@@ -12,8 +12,11 @@ import { ResponseMessage } from 'src/interceptors/response_message.decorator';
 import { CommentsService } from './comments.service';
 import { CreateCommentDto } from './dto/create-comment.dto';
 import { JwtAuthGuard } from 'src/auth/jwt-auth.guard';
-import { ApiTags } from '@nestjs/swagger';
+import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
+import { GetUser } from 'src/common/decorators/get-user.decorator';
+import { User } from '@prisma/client';
 
+@ApiBearerAuth()
 @ApiTags('Comments')
 @UsePipes(new ValidationPipe())
 @Controller('comments')
@@ -23,8 +26,11 @@ export class CommentsController {
 
   @Post()
   @UseGuards(JwtAuthGuard)
-  @ResponseMessage('Comment created successfully')
-  async createPost(@Body(ValidationPipe) createCommentDto: CreateCommentDto) {
-    return await this.commentsService.create(createCommentDto);
+  @ResponseMessage({ message: 'Comment created successfully' })
+  async createPost(
+    @Body(ValidationPipe) createCommentDto: CreateCommentDto,
+    @GetUser() user: User,
+  ) {
+    return await this.commentsService.create(createCommentDto, user);
   }
 }

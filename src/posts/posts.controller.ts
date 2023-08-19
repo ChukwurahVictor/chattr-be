@@ -33,7 +33,7 @@ export class PostsController {
 
   @Post()
   @UseGuards(JwtAuthGuard)
-  @ResponseMessage('Post created successfully')
+  @ResponseMessage({ message: 'Post created successfully' })
   async createPost(
     @Body(ValidationPipe) createPostDto: CreatePostDto,
     @GetUser() user: User,
@@ -42,20 +42,20 @@ export class PostsController {
   }
 
   @Get()
-  @ResponseMessage('Posts fetched Successfully')
+  @ResponseMessage({ message: 'Posts fetched Successfully' })
   async getPosts() {
     return this.postsService.findAllPosts();
   }
 
   @Get(':id')
-  @ResponseMessage('Post fetched Successfully')
+  @ResponseMessage({ message: 'Post fetched Successfully' })
   async getSinglePost(@Param('id') id: string) {
     return this.postsService.findOnePost(id);
   }
 
   @Patch(':id')
   @UseGuards(JwtAuthGuard)
-  @ResponseMessage('Post updated Successfully')
+  @ResponseMessage({ message: 'Post updated Successfully' })
   async updatePost(
     @Param('id') id: string,
     @Body(ValidationPipe) updatePostDto: UpdatePostDto,
@@ -66,14 +66,14 @@ export class PostsController {
 
   @Delete(':id')
   @UseGuards(JwtAuthGuard)
-  @ResponseMessage('Posts removed Successfully')
+  @ResponseMessage({ message: 'Posts removed Successfully' })
   async removePost(@Param('id') id: string) {
     return this.postsService.removePost(id);
   }
 
   @Delete('add-to-category')
   @UseGuards(JwtAuthGuard)
-  @ResponseMessage('Post added to category Successfully')
+  @ResponseMessage({ message: 'Post added to category Successfully' })
   async addPostToCategory(
     @Body(ValidationPipe) addPostToCategoryDto: AddPostToCategoryDto,
   ) {

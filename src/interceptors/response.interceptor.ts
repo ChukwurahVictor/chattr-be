@@ -4,7 +4,8 @@ import {
   Injectable,
   NestInterceptor,
 } from '@nestjs/common';
-import { map, Observable } from 'rxjs';
+import { Observable } from 'rxjs';
+import { map } from 'rxjs/operators';
 import { Reflector } from '@nestjs/core';
 
 export interface Response<T> {
@@ -24,23 +25,21 @@ export class ResponseInterceptor<T> implements NestInterceptor<T, Response<T>> {
     next: CallHandler,
   ): Observable<Response<T>> {
     const responseOptions = this.reflector.getAllAndOverride<ResponseOptions>(
-      'response message',
+      'response_message',
       [context.getHandler(), context.getClass()],
     );
+
     const message = responseOptions?.message;
     if (responseOptions?.statusCode) {
       context.switchToHttp().getResponse().status(responseOptions?.statusCode);
     }
 
     return next.handle().pipe(
-      map((data) => {
-        console.log(data);
-        return {
-          statusCode: responseOptions?.statusCode,
-          message,
-          data,
-        };
-      }),
+      map((data) => ({
+        statusCode: responseOptions?.statusCode,
+        message,
+        data,
+      })),
     );
   }
 }

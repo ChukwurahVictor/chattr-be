@@ -8,9 +8,9 @@ export class CreateCommentDto {
 
   @ApiProperty()
   @IsNotEmpty()
-  postId: number;
+  postId: string;
 
-  @ApiProperty()
-  @IsNotEmpty()
-  userId: string;
+  //   @ApiProperty()
+  //   @IsNotEmpty()
+  //   userId: string;
 }
