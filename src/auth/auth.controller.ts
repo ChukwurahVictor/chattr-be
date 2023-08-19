@@ -1,4 +1,11 @@
-import { UseInterceptors, Body, Controller, Post } from '@nestjs/common';
+import {
+  UseInterceptors,
+  Body,
+  Controller,
+  Post,
+  UsePipes,
+  ValidationPipe,
+} from '@nestjs/common';
 import { ResponseInterceptor } from 'src/interceptors/response.interceptor';
 import { ResponseMessage } from 'src/interceptors/response_message.decorator';
 import { AuthService } from './auth.service';
@@ -9,6 +16,7 @@ import { CreateUserDto } from './dto/create-user.dto';
 
 @Controller('auth')
 @UseInterceptors(ResponseInterceptor)
+@UsePipes(new ValidationPipe())
 @ApiTags('auth')
 export class AuthController {
   constructor(private readonly authService: AuthService) {}
@@ -16,14 +24,14 @@ export class AuthController {
   @Post('signup')
   @ResponseMessage('User signed up successfully')
   @ApiOkResponse({ type: AuthEntity })
-  signup(@Body() createUserDto: CreateUserDto) {
+  signup(@Body(ValidationPipe) createUserDto: CreateUserDto) {
     return this.authService.signup(createUserDto);
   }
 
   @Post('login')
   @ResponseMessage('Login successful')
   @ApiOkResponse({ type: AuthEntity })
-  login(@Body() { email, password }: LoginDto) {
-    return this.authService.login(email, password);
+  login(@Body(ValidationPipe) loginDto: LoginDto) {
+    return this.authService.login(loginDto);
   }
 }

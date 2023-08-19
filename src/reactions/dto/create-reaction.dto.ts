@@ -1,9 +1,14 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { IsNotEmpty, IsString } from 'class-validator';
 
-export class CreateCategoryDto {
+export class CreateReactionDto {
   @ApiProperty()
-  @IsNotEmpty()
   @IsString()
-  name: string;
+  @IsNotEmpty()
+  postId: string;
+
+  @ApiProperty()
+  @IsString()
+  @IsNotEmpty()
+  userId: string;
 }

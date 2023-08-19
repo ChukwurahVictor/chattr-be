@@ -1,21 +1,27 @@
-import { IsNotEmpty, IsOptional, IsString, IsUUID } from "class-validator";
+import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
+import { IsNotEmpty, IsOptional, IsString, IsUUID } from 'class-validator';
 
 export class CreatePostDto {
-    @IsNotEmpty()
-    title: String;
+  @ApiProperty()
+  @IsNotEmpty()
+  title: string;
 
-    @IsNotEmpty()
-    content: string;
+  @ApiProperty()
+  @IsNotEmpty()
+  content: string;
 
-    @IsOptional()
-    @IsString()
-    image?: string;
+  @ApiProperty()
+  @IsOptional()
+  @IsString()
+  image?: string;
 
-    // @IsUUID()
-    // @IsNotEmpty()
-    // category: string;
+  @ApiProperty()
+  @IsUUID()
+  @IsNotEmpty()
+  categoryId?: string;
 
-    @IsUUID()
-    @IsNotEmpty()
-    authorId: string;
+  // @ApiPropertyOptional()
+  // @IsUUID()
+  // @IsOptional()
+  // authorId?: string;
 }

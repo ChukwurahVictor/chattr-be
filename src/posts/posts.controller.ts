@@ -8,6 +8,9 @@ import {
   UseInterceptors,
   Param,
   UseGuards,
+  Req,
+  ValidationPipe,
+  UsePipes,
 } from '@nestjs/common';
 import { PostsService } from './posts.service';
 import { ResponseInterceptor } from 'src/interceptors/response.interceptor';
@@ -15,7 +18,14 @@ import { ResponseMessage } from 'src/interceptors/response_message.decorator';
 import { JwtAuthGuard } from 'src/auth/jwt-auth.guard';
 import { CreatePostDto } from './dto/create-post.dto';
 import { UpdatePostDto } from './dto/update-post.dto';
+import { AddPostToCategoryDto } from 'src/categories/dto/add-post-category.dto';
+import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
+import { User } from '@prisma/client';
+import { GetUser } from 'src/common/decorators/get-user.decorator';
 
+@ApiBearerAuth()
+@ApiTags('Posts')
+@UsePipes(new ValidationPipe())
 @Controller('posts')
 @UseInterceptors(ResponseInterceptor)
 export class PostsController {
@@ -24,8 +34,11 @@ export class PostsController {
   @Post()
   @UseGuards(JwtAuthGuard)
   @ResponseMessage('Post created successfully')
-  async createPost(@Body() createPostDto: CreatePostDto) {
-    return await this.postsService.create(createPostDto);
+  async createPost(
+    @Body(ValidationPipe) createPostDto: CreatePostDto,
+    @GetUser() user: User,
+  ) {
+    return await this.postsService.create(createPostDto, user);
   }
 
   @Get()
@@ -45,9 +58,10 @@ export class PostsController {
   @ResponseMessage('Post updated Successfully')
   async updatePost(
     @Param('id') id: string,
-    @Body() updatePostDto: UpdatePostDto,
+    @Body(ValidationPipe) updatePostDto: UpdatePostDto,
+    @GetUser() user: User,
   ) {
-    return this.postsService.updatePost(id, updatePostDto);
+    return this.postsService.updatePost(id, updatePostDto, user);
   }
 
   @Delete(':id')
@@ -55,5 +69,14 @@ export class PostsController {
   @ResponseMessage('Posts removed Successfully')
   async removePost(@Param('id') id: string) {
     return this.postsService.removePost(id);
+  }
+
+  @Delete('add-to-category')
+  @UseGuards(JwtAuthGuard)
+  @ResponseMessage('Post added to category Successfully')
+  async addPostToCategory(
+    @Body(ValidationPipe) addPostToCategoryDto: AddPostToCategoryDto,
+  ) {
+    return this.postsService.addPostToCategory(addPostToCategoryDto);
   }
 }

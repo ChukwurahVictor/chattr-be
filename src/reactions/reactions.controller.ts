@@ -4,45 +4,41 @@ import {
   Body,
   Post,
   Get,
-  Patch,
+  Param,
   Delete,
+  ValidationPipe,
+  UsePipes,
 } from '@nestjs/common';
 import { ResponseInterceptor } from 'src/interceptors/response.interceptor';
 import { ResponseMessage } from 'src/interceptors/response_message.decorator';
 import { ReactionsService } from './reactions.service';
+import { CreateReactionDto } from './dto/create-reaction.dto';
+import { ApiTags } from '@nestjs/swagger';
 
-@Controller('comments')
+@ApiTags('Reactions')
+@UsePipes(new ValidationPipe())
+@Controller('reactions')
 @UseInterceptors(ResponseInterceptor)
 export class ReactionsController {
   constructor(private readonly reactionsService: ReactionsService) {}
 
   @Post()
   @ResponseMessage('Reaction created successfully')
-  async createReaction() {
-    return await this.reactionsService.create();
+  async createReaction(
+    @Body(ValidationPipe) createReactionDto: CreateReactionDto,
+  ) {
+    return await this.reactionsService.create(createReactionDto);
   }
 
-  @Get()
+  @Get('/:postId')
   @ResponseMessage('Reactions fetched successfully')
-  async getReactions() {
-    return await this.reactionsService.getAllReactions();
+  async getReactions(@Param('postId') postId: string) {
+    return await this.reactionsService.getPostReactions(postId);
   }
 
-  @Get()
-  @ResponseMessage('Reaction fetched successfully')
-  async getReaction() {
-    return await this.reactionsService.getAReaction();
-  }
-
-  @Patch()
-  @ResponseMessage('Reaction updated successfully')
-  async updateReaction() {
-    return await this.reactionsService.updateReaction();
-  }
-
-  @Delete()
+  @Delete('/:id')
   @ResponseMessage('Reaction deleted successfully')
-  async removeReaction() {
-    return await this.reactionsService.removeReaction();
+  async removeReaction(@Param('id') id: string) {
+    return await this.reactionsService.removeReaction(id);
   }
 }

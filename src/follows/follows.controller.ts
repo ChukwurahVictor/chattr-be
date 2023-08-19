@@ -1,10 +1,23 @@
-import { Controller, UseInterceptors, UseGuards, Body, Param, Post, Get } from '@nestjs/common';
+import {
+  Controller,
+  UseInterceptors,
+  UseGuards,
+  Body,
+  Param,
+  Post,
+  Get,
+  UsePipes,
+  ValidationPipe,
+} from '@nestjs/common';
 import { ResponseInterceptor } from 'src/interceptors/response.interceptor';
 import { ResponseMessage } from 'src/interceptors/response_message.decorator';
 import { FollowsService } from './follows.service';
 import { CreateFollowDto } from './dto/create-follow.dto';
 import { JwtAuthGuard } from 'src/auth/jwt-auth.guard';
+import { ApiTags } from '@nestjs/swagger';
 
+@ApiTags('Follows')
+@UsePipes(new ValidationPipe())
 @Controller('follows')
 @UseInterceptors(ResponseInterceptor)
 export class FollowsController {
@@ -13,7 +26,7 @@ export class FollowsController {
   @Post()
   @UseGuards(JwtAuthGuard)
   @ResponseMessage('Follow created successfully')
-  async createFollow(@Body() CreateFollowDto: CreateFollowDto) {
+  async createFollow(@Body(ValidationPipe) CreateFollowDto: CreateFollowDto) {
     return await this.followsService.createFollow(CreateFollowDto);
   }
 
