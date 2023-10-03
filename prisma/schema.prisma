@@ -19,8 +19,10 @@ model User {
   comments    Comment[]
   followedBy  Follows[]  @relation("following")
   following   Follows[]  @relation("follower")
-  createdAt   DateTime   @default(now())
-  updatedAt   DateTime   @updatedAt
+  createdAt   DateTime   @default(now()) @db.Timestamptz(6)
+  createdBy   String?    @db.Uuid
+  updatedAt   DateTime   @default(now()) @updatedAt @db.Timestamptz(6)
+  updatedBy   String?    @db.Uuid
 }
 
 model Post {
@@ -33,14 +35,20 @@ model Post {
   likes      Reaction[]
   comments   Comment[]
   categories Posts_Categories[]
-  createdAt  DateTime           @default(now())
-  updatedAt  DateTime           @updatedAt
+  createdAt  DateTime           @default(now()) @db.Timestamptz(6)
+  createdBy  String?            @db.Uuid
+  updatedAt  DateTime           @default(now()) @updatedAt @db.Timestamptz(6)
+  updatedBy  String?            @db.Uuid
 }
 
 model Category {
-  id    String             @id @default(uuid())
-  name  String
-  posts Posts_Categories[]
+  id        String             @id @default(uuid())
+  name      String
+  posts     Posts_Categories[]
+  createdAt DateTime           @default(now()) @db.Timestamptz(6)
+  createdBy String?            @db.Uuid
+  updatedAt DateTime           @default(now()) @updatedAt @db.Timestamptz(6)
+  updatedBy String?            @db.Uuid
 }
 
 model Posts_Categories {
@@ -48,8 +56,10 @@ model Posts_Categories {
   postId     String
   category   Category @relation(fields: [categoryId], references: [id])
   categoryId String
-  createdAt  DateTime @default(now())
-  updatedAt  DateTime @updatedAt
+  createdAt  DateTime @default(now()) @db.Timestamptz(6)
+  createdBy  String?  @db.Uuid
+  updatedAt  DateTime @default(now()) @updatedAt @db.Timestamptz(6)
+  updatedBy  String?  @db.Uuid
 
   @@id([postId, categoryId])
 }
@@ -59,8 +69,10 @@ model Follows {
   followerId  String
   following   User     @relation("following", fields: [followingId], references: [id])
   followingId String
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  createdAt   DateTime @default(now()) @db.Timestamptz(6)
+  createdBy   String?  @db.Uuid
+  updatedAt   DateTime @default(now()) @updatedAt @db.Timestamptz(6)
+  updatedBy   String?  @db.Uuid
 
   @@id([followerId, followingId])
 }
@@ -71,8 +83,10 @@ model Reaction {
   postId    String
   user      User     @relation(fields: [userId], references: [id])
   userId    String
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  createdAt DateTime @default(now()) @db.Timestamptz(6)
+  createdBy String?  @db.Uuid
+  updatedAt DateTime @default(now()) @updatedAt @db.Timestamptz(6)
+  updatedBy String?  @db.Uuid
 }
 
 model Comment {
@@ -82,6 +96,8 @@ model Comment {
   body      String
   user      User     @relation(fields: [userId], references: [id])
   userId    String
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  createdAt DateTime @default(now()) @db.Timestamptz(6)
+  createdBy String?  @db.Uuid
+  updatedAt DateTime @default(now()) @updatedAt @db.Timestamptz(6)
+  updatedBy String?  @db.Uuid
 }

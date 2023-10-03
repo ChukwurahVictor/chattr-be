@@ -1,4 +1,5 @@
 import { Injectable } from '@nestjs/common';
+import * as bcrypt from 'bcrypt';
 
 @Injectable()
 export class AppUtilities {
@@ -33,5 +34,31 @@ export class AppUtilities {
       selectObject[field] = true;
       return selectObject;
     }, {});
+  }
+
+  public static async validator(
+    password: string,
+    hashedPassword: string,
+  ): Promise<any> {
+    return await bcrypt.compare(password, hashedPassword);
+  }
+
+  public static async hasher(string: string): Promise<any> {
+    const roundsOfHashing = 10;
+    return await bcrypt.hash(string, roundsOfHashing);
+  }
+
+  public static encode(
+    data: string,
+    encoding: BufferEncoding = 'base64',
+  ): string {
+    return Buffer.from(data).toString(encoding);
+  }
+
+  public static decode(
+    data: string,
+    encoding: BufferEncoding = 'base64',
+  ): string {
+    return Buffer.from(data, encoding).toString();
   }
 }
