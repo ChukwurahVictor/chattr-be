@@ -71,6 +71,7 @@ export class PostsService {
         author: {
           select: authorFields,
         },
+        categories: true,
         comments: true,
         likes: true,
       },
