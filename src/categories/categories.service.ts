@@ -37,7 +37,13 @@ export class CategoriesService {
         where: { id },
         include: {
           posts: {
-            select: { post: true },
+            select: {
+              post: {
+                include: {
+                  author: true,
+                },
+              },
+            },
           },
         },
       });
