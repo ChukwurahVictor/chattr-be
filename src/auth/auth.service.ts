@@ -90,7 +90,7 @@ export class AuthService {
       user: {
         ...usr,
       },
-      // accessToken: this.jwtService.sign({ userId: user.id }),
+      accessToken: this.jwtService.sign({ userId: user.id }),
     };
   }
 
