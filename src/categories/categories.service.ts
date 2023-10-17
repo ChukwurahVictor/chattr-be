@@ -112,10 +112,6 @@ export class CategoriesService {
       });
 
       const deletedCategory = await Promise.all(deleteCategoryInPost);
-      console.log(
-        '🚀 ~ file: categories.service.ts:112 ~ CategoriesService ~ deleteCategoryInPost ~ deleteCategoryInPost:',
-        deletedCategory,
-      );
 
       const deleteCategory = this.prisma.category.delete({ where: { id } });
       return deleteCategory;
