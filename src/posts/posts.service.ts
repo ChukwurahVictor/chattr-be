@@ -4,21 +4,30 @@ import {
   HttpStatus,
   ForbiddenException,
 } from '@nestjs/common';
-import { CreateCategoryDto } from 'src/categories/dto/create-category.dto';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { CreatePostDto } from './dto/create-post.dto';
 import * as moment from 'moment';
-import { PrismaClient, User } from '@prisma/client';
+import { Prisma, PrismaClient, User } from '@prisma/client';
 import { UpdatePostDto } from './dto/update-post.dto';
-import { AppUtilities } from 'src/app.utilities';
+import { AppUtilities } from '../app.utilities';
+import { PaginationSearchOptionsDto } from 'src/common/interfaces/pagination-search-options.dto';
+import { CrudService } from 'src/common/database/crud-service';
+import { PostMapType } from './post-maptype';
 export const roundsOfHashing = 10;
 // import { UpdatePostDto } from './dto/update-user.dto';
 
 @Injectable()
-export class PostsService {
-  constructor(private prisma: PrismaService) {}
+export class PostsService extends CrudService<
+  Prisma.PostDelegate<Prisma.RejectOnNotFound>,
+  PostMapType
+> {
+  private authorFields: Prisma.UserSelect = { password: false };
+  constructor(private prisma: PrismaService) {
+    super(prisma.post);
+    this.authorFields = AppUtilities.removePasswordForAuthorSelect();
+  }
 
-  async create(createPostDto: CreatePostDto, user: User) {
+  async createPost(createPostDto: CreatePostDto, user: User) {
     const { categoryId, title, image, content } = createPostDto;
     const authorId = user.id;
 
@@ -29,6 +38,15 @@ export class PostsService {
     });
     if (!findAuthor) {
       throw new HttpException('Author not found', HttpStatus.NOT_FOUND);
+    }
+
+    if (categoryId === undefined || categoryId === null || categoryId === '') {
+      return await this.createPostWithoutCategory(
+        title,
+        content,
+        image,
+        authorId,
+      );
     }
 
     const category = await this.prisma.category.findFirst({
@@ -47,7 +65,9 @@ export class PostsService {
         author: { connect: { id: authorId } },
         updatedAt: moment().toISOString(),
       },
-      include: { author: true },
+      include: {
+        author: { select: this.authorFields },
+      },
     });
 
     await this.prisma.posts_Categories.create({
@@ -60,38 +80,66 @@ export class PostsService {
     return {
       message: 'Post created successfully',
       post,
+      category: category || null,
     };
   }
 
-  async findAllPosts() {
-    const authorFields = AppUtilities.removePasswordForAuthorSelect();
-
-    const posts = await this.prisma.post.findMany({
+  async findAllPosts({
+    cursor,
+    direction,
+    size,
+    ...dto
+  }: PaginationSearchOptionsDto) {
+    const parsedQueryFilters = this.parseQueryFilter(dto, ['title', 'content']);
+    const args: Prisma.PostFindManyArgs = {
+      where: {
+        ...parsedQueryFilters,
+      },
       include: {
         author: {
-          select: authorFields,
+          select: this.authorFields,
         },
-        comments: true,
-        likes: true,
+        comments: {
+          include: {
+            user: {
+              select: this.authorFields,
+            },
+          },
+        },
+        likes: { select: { user: { select: this.authorFields } } },
+        categories: { include: { category: true } },
       },
+    };
+
+    const posts = await this.findManyPaginate(args, {
+      cursor,
+      direction,
+      size,
+      ...dto,
     });
     return posts;
   }
 
   async findOnePost(id: string) {
-    const authorFields = AppUtilities.removePasswordForAuthorSelect();
     const post = await this.prisma.post.findUnique({
       where: { id },
       include: {
         author: {
-          select: authorFields,
+          select: this.authorFields,
         },
         comments: {
           include: {
-            user: true,
+            user: { select: this.authorFields },
           },
         },
-        likes: true,
+        likes: {
+          select: {
+            user: {
+              select: this.authorFields,
+            },
+          },
+        },
+        categories: { include: { category: true } },
       },
     });
 
@@ -127,13 +175,19 @@ export class PostsService {
     });
   }
 
-  async removePost(id: string) {
+  async removePost(id: string, user: User) {
     const post = await this.prisma.post.findUnique({
       where: { id },
     });
 
     if (!post) {
       throw new HttpException('Post not found', HttpStatus.NOT_FOUND);
+    }
+
+    if (post.authorId !== user.id) {
+      throw new ForbiddenException(
+        'You do not have permission to delete this post.',
+      );
     }
 
     const deletePost = await this.prisma.$transaction(async (prisma) => {
@@ -203,5 +257,36 @@ export class PostsService {
     });
 
     return 'Post added successfully';
+  }
+
+  async createPostWithoutCategory(
+    title: string,
+    content: string,
+    image: string,
+    authorId: string,
+  ) {
+    return await this.prisma.post.create({
+      data: {
+        title,
+        content,
+        image,
+        author: { connect: { id: authorId } },
+        updatedAt: moment().toISOString(),
+      },
+      include: {
+        author: { select: this.authorFields },
+      },
+    });
+  }
+
+  private prismaClient: PrismaClient = new PrismaClient({
+    // log: ['query', 'info', 'warn', 'error'],
+    datasources: {
+      db: { url: process.env.DATABASE_URL },
+    },
+  });
+
+  getPrismaClient(): PrismaClient {
+    return this.prismaClient;
   }
 }

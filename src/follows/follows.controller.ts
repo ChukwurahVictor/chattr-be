@@ -27,12 +27,6 @@ import { User } from '@prisma/client';
 export class FollowsController {
   constructor(private readonly followsService: FollowsService) {}
 
-  @Post('/:id')
-  @ResponseMessage({ message: 'Follow created successfully' })
-  async createFollow(@Param('id') id: string, @GetUser() user: User) {
-    return await this.followsService.createFollow(id, user);
-  }
-
   @Get('/:id/followers')
   @ResponseMessage({ message: 'Followers fetched successfully' })
   async getFollowers(@Param('id') id: string) {
@@ -43,6 +37,12 @@ export class FollowsController {
   @ResponseMessage({ message: 'Following fetched successfully' })
   async getFollowing(@Param('id') id: string) {
     return await this.followsService.getFollowing(id);
+  }
+
+  @Post('/:id')
+  @ResponseMessage({ message: 'Follow created successfully' })
+  async createFollow(@Param('id') id: string, @GetUser() user: User) {
+    return await this.followsService.createFollow(id, user);
   }
 
   @Post('/:id/unfollow')

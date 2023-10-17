@@ -3,12 +3,19 @@ import {
   HttpException,
   HttpStatus,
   ConflictException,
+  NotFoundException,
 } from '@nestjs/common';
+import { AppUtilities } from 'src/app.utilities';
 import { PrismaService } from 'src/prisma/prisma.service';
+import { UpdateCategoryDto } from './dto/update-category.dto';
+import * as moment from 'moment';
 
 @Injectable()
 export class CategoriesService {
-  constructor(private prisma: PrismaService) {}
+  private authorFields: any;
+  constructor(private prisma: PrismaService) {
+    this.authorFields = AppUtilities.removePasswordForAuthorSelect();
+  }
 
   async create(createCategoryDto) {
     const categoryExists = await this.prisma.category.findFirst({
@@ -37,10 +44,13 @@ export class CategoriesService {
         where: { id },
         include: {
           posts: {
-            select: { post: true },
+            select: {
+              post: { include: { author: { select: this.authorFields } } },
+            },
           },
         },
       });
+
       if (!category) {
         throw new HttpException('Category not found.', HttpStatus.NOT_FOUND);
       }
@@ -50,17 +60,65 @@ export class CategoriesService {
     }
   }
 
-  async updateCategory() {
+  async updateCategory(id: string, updateCategoryDto: UpdateCategoryDto) {
     try {
-      return 'Update Category';
+      const { name } = updateCategoryDto;
+      const foundCategory = await this.prisma.category.findUnique({
+        where: { id },
+      });
+
+      if (!foundCategory) {
+        throw new NotFoundException('Category not found.');
+      }
+
+      const categoryExists = await this.prisma.category.findFirst({
+        where: { id },
+      });
+
+      if (categoryExists.name === name) {
+        throw new ConflictException('Category already exists.');
+      }
+
+      return await this.prisma.category.update({
+        where: { id },
+        data: { name, updatedAt: moment().toISOString() },
+      });
     } catch (error) {
       throw new HttpException(`${error.message}`, HttpStatus.BAD_REQUEST);
     }
   }
 
-  async removeCategory() {
+  async removeCategory(id: string) {
     try {
-      return 'Delete Category';
+      const foundCategory = await this.prisma.category.findUnique({
+        where: { id },
+        include: { posts: { select: { postId: true } } },
+      });
+
+      if (!foundCategory) {
+        throw new NotFoundException('Category not found.');
+      }
+
+      const deleteCategoryInPost = foundCategory.posts.map(async (category) => {
+        const updatedPost = await this.prisma.post.update({
+          where: { id: category.postId },
+          data: {
+            categories: {
+              deleteMany: { categoryId: foundCategory.id },
+            },
+          },
+        });
+        return updatedPost;
+      });
+
+      const deletedCategory = await Promise.all(deleteCategoryInPost);
+      console.log(
+        '🚀 ~ file: categories.service.ts:112 ~ CategoriesService ~ deleteCategoryInPost ~ deleteCategoryInPost:',
+        deletedCategory,
+      );
+
+      const deleteCategory = this.prisma.category.delete({ where: { id } });
+      return deleteCategory;
     } catch (error) {
       throw new HttpException(`${error.message}`, HttpStatus.BAD_REQUEST);
     }
