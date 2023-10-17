@@ -69,7 +69,7 @@ export class PostsController {
     return this.postsService.removePost(id, user);
   }
 
-  @Delete('add-to-category')
+  @Post('add-to-category')
   @UseGuards(JwtAuthGuard)
   @ResponseMessage({ message: 'Post added to category Successfully' })
   async addPostToCategory(@Body() addPostToCategoryDto: AddPostToCategoryDto) {
