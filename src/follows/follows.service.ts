@@ -5,7 +5,6 @@ import {
   BadRequestException,
 } from '@nestjs/common';
 import { PrismaService } from 'src/prisma/prisma.service';
-import { CreateFollowDto } from './dto/create-follow.dto';
 import { User } from '@prisma/client';
 import { AppUtilities } from 'src/app.utilities';
 
@@ -41,7 +40,7 @@ export class FollowsService {
       );
 
     const alreadyFollowing = await this.prisma.follows.findFirst({
-      where: { followerId: followerId, followingId: id },
+      where: { followerId, followingId: id },
     });
 
     if (alreadyFollowing) {
@@ -73,7 +72,7 @@ export class FollowsService {
       );
     }
 
-    const deleteUser = await this.prisma.follows.delete({
+    await this.prisma.follows.delete({
       where: {
         followerId_followingId: { followerId: follower.id, followingId: id },
       },

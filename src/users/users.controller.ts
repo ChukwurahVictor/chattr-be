@@ -32,11 +32,29 @@ export class UsersController {
     return this.usersService.findAllUsers();
   }
 
+  @Get('reactions')
+  @ResponseMessage({ message: 'Users reactions fetched Successfully' })
+  async getUserReactions(@Param('id') id: string) {
+    return 'Fetch user reactions';
+  }
+
   @Get(':id')
   @UseGuards(JwtAuthGuard)
   @ResponseMessage({ message: 'User fetched Successfully' })
   async getSingleUser(@Param('id') id: string) {
     return this.usersService.findOneUser(id);
+  }
+
+  @Get('/:id/posts')
+  @ResponseMessage({ message: 'Users posts fetched Successfully' })
+  async getUserPosts(@Param('id') id: string) {
+    return this.usersService.getUserPosts(id);
+  }
+
+  @Get('/:id/follows')
+  @ResponseMessage({ message: 'Users follows fetched Successfully' })
+  async getUserFollows(@Param('id') id: string) {
+    return this.usersService.getUserFollows(id);
   }
 
   @Patch()
@@ -52,23 +70,5 @@ export class UsersController {
   @ResponseMessage({ message: 'Users removed Successfully' })
   async removeUser(@Param('id') id: string) {
     return this.usersService.removeUser(id);
-  }
-
-  @Get(':id/posts')
-  @ResponseMessage({ message: 'Users posts fetched Successfully' })
-  async getUserPosts(@Param('id') id: string) {
-    return this.usersService.getUserPosts(id);
-  }
-
-  @Get('reactions')
-  @ResponseMessage({ message: 'Users reactions fetched Successfully' })
-  async getUserReactions(@Param('id') id: string) {
-    return 'Fetch user reactions';
-  }
-
-  @Get('/:id/follows')
-  @ResponseMessage({ message: 'Users follows fetched Successfully' })
-  async getUserFollows(@Param('id') id: string) {
-    return this.usersService.getUserFollows(id);
   }
 }

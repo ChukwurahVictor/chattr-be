@@ -10,7 +10,15 @@ import { ReactionsModule } from './reactions/reactions.module';
 import { FollowsModule } from './follows/follows.module';
 
 @Module({
-  imports: [AuthModule, UsersModule, PostsModule, CommentsModule, CategoriesModule, ReactionsModule, FollowsModule],
+  imports: [
+    AuthModule,
+    UsersModule,
+    PostsModule,
+    CommentsModule,
+    CategoriesModule,
+    ReactionsModule,
+    FollowsModule,
+  ],
   controllers: [AppController],
   providers: [AppService],
 })

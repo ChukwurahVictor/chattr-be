@@ -19,7 +19,9 @@ export class RequestInterceptor implements NestInterceptor {
     delete mHeaders.authorization;
     delete mBody.password;
     delete mBody.newPassword;
-    console.log('%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%');
+    console.log(
+      '%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%',
+    );
     console.log('URL -->', `${method} ${url}`);
     console.log('headers -->', mHeaders);
     mBody && console.log('body -->', mBody);

@@ -8,8 +8,8 @@ import { User } from '@prisma/client';
 export class CommentsService {
   constructor(private prisma: PrismaService) {}
 
-  async create(createCommentDto: CreateCommentDto, user: User) {
-    const { postId, body } = createCommentDto;
+  async create(createCommentDto: CreateCommentDto, user: User, postId: string) {
+    const { body } = createCommentDto;
     const findPost = await this.prisma.post.findUnique({
       where: { id: postId },
     });

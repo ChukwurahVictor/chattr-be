@@ -6,6 +6,7 @@ import {
   Post,
   UsePipes,
   ValidationPipe,
+  Param,
 } from '@nestjs/common';
 import { ResponseInterceptor } from 'src/interceptors/response.interceptor';
 import { ResponseMessage } from 'src/interceptors/response_message.decorator';
@@ -24,13 +25,14 @@ import { User } from '@prisma/client';
 export class CommentsController {
   constructor(private readonly commentsService: CommentsService) {}
 
-  @Post()
+  @Post('/:id')
   @UseGuards(JwtAuthGuard)
   @ResponseMessage({ message: 'Comment created successfully' })
   async createPost(
     @Body(ValidationPipe) createCommentDto: CreateCommentDto,
     @GetUser() user: User,
+    @Param('id') postId: string,
   ) {
-    return await this.commentsService.create(createCommentDto, user);
+    return await this.commentsService.create(createCommentDto, user, postId);
   }
 }
