@@ -1,21 +1,24 @@
 import {
   Controller,
   UseInterceptors,
-  Body,
   Post,
   Get,
   Param,
   Delete,
   ValidationPipe,
   UsePipes,
+  UseGuards,
 } from '@nestjs/common';
 import { ResponseInterceptor } from 'src/interceptors/response.interceptor';
 import { ResponseMessage } from 'src/interceptors/response_message.decorator';
 import { ReactionsService } from './reactions.service';
-import { CreateReactionDto } from './dto/create-reaction.dto';
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
+import { GetUser } from 'src/common/decorators/get-user.decorator';
+import { User } from '@prisma/client';
+import { JwtAuthGuard } from 'src/auth/jwt-auth.guard';
 
 @ApiBearerAuth()
+@UseGuards(JwtAuthGuard)
 @ApiTags('Reactions')
 @UsePipes(new ValidationPipe())
 @Controller('reactions')
@@ -23,23 +26,21 @@ import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
 export class ReactionsController {
   constructor(private readonly reactionsService: ReactionsService) {}
 
-  @Post()
-  @ResponseMessage({ message: 'Reaction created successfully' })
-  async createReaction(
-    @Body(ValidationPipe) createReactionDto: CreateReactionDto,
-  ) {
-    return await this.reactionsService.create(createReactionDto);
+  @Get('/:id')
+  @ResponseMessage({ message: 'Reactions fetched successfully' })
+  async getReactions(@Param('id') postId: string) {
+    return await this.reactionsService.getPostReactions(postId);
   }
 
-  @Get('/:postId')
-  @ResponseMessage({ message: 'Reactions fetched successfully' })
-  async getReactions(@Param('postId') postId: string) {
-    return await this.reactionsService.getPostReactions(postId);
+  @Post('/:id')
+  @ResponseMessage({ message: 'Reaction created successfully' })
+  async createReaction(@Param('id') postId: string, @GetUser() userId: User) {
+    return await this.reactionsService.create(postId, userId);
   }
 
   @Delete('/:id')
   @ResponseMessage({ message: 'Reaction deleted successfully' })
-  async removeReaction(@Param('id') id: string) {
-    return await this.reactionsService.removeReaction(id);
+  async removeReaction(@Param('id') id: string, @GetUser() user: User) {
+    return await this.reactionsService.removeReaction(id, user);
   }
 }
