@@ -29,14 +29,16 @@ export class ResponseInterceptor<T> implements NestInterceptor<T, Response<T>> {
       [context.getHandler(), context.getClass()],
     );
 
+    const httpResponse = context.switchToHttp().getResponse();
     const message = responseOptions?.message;
+    const statusCode = responseOptions?.statusCode || httpResponse.statusCode;
     if (responseOptions?.statusCode) {
-      context.switchToHttp().getResponse().status(responseOptions?.statusCode);
+      httpResponse.status(responseOptions.statusCode);
     }
 
     return next.handle().pipe(
       map((data) => ({
-        statusCode: responseOptions?.statusCode,
+        statusCode,
         message,
         data,
       })),

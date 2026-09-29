@@ -4,9 +4,10 @@ import {
   UseGuards,
   Body,
   Post,
+  Delete,
+  Param,
   UsePipes,
   ValidationPipe,
-  Param,
 } from '@nestjs/common';
 import { ResponseInterceptor } from 'src/interceptors/response.interceptor';
 import { ResponseMessage } from 'src/interceptors/response_message.decorator';
@@ -28,11 +29,21 @@ export class CommentsController {
   @Post('/:id')
   @UseGuards(JwtAuthGuard)
   @ResponseMessage({ message: 'Comment created successfully' })
-  async createPost(
+  async createComment(
     @Body(ValidationPipe) createCommentDto: CreateCommentDto,
     @GetUser() user: User,
     @Param('id') postId: string,
   ) {
     return await this.commentsService.create(createCommentDto, user, postId);
+  }
+
+  @Delete(':id')
+  @UseGuards(JwtAuthGuard)
+  @ResponseMessage({ message: 'Comment deleted successfully' })
+  async removeComment(
+    @Param('id') id: string,
+    @GetUser() user: User,
+  ) {
+    return await this.commentsService.remove(id, user);
   }
 }

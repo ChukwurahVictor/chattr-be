@@ -5,6 +5,7 @@ import {
   BadRequestException,
 } from '@nestjs/common';
 import { PrismaService } from 'src/prisma/prisma.service';
+import { CreateFollowDto } from './dto/create-follow.dto';
 import { User } from '@prisma/client';
 import { AppUtilities } from 'src/app.utilities';
 
@@ -40,7 +41,7 @@ export class FollowsService {
       );
 
     const alreadyFollowing = await this.prisma.follows.findFirst({
-      where: { followerId, followingId: id },
+      where: { followerId: followerId, followingId: id },
     });
 
     if (alreadyFollowing) {
@@ -72,7 +73,7 @@ export class FollowsService {
       );
     }
 
-    await this.prisma.follows.delete({
+    const deleteUser = await this.prisma.follows.delete({
       where: {
         followerId_followingId: { followerId: follower.id, followingId: id },
       },
@@ -84,17 +85,19 @@ export class FollowsService {
   }
 
   async getFollowing(id: string) {
+    const data = AppUtilities.removePasswordForAuthorSelect();
     const following = await this.prisma.follows.findMany({
       where: { followerId: id },
-      include: { following: true },
+      include: { following: { select: data } },
     });
     return following;
   }
 
   async getFollowers(id: string) {
-    const followers = await this.prisma.user.findMany({
-      where: { id: id },
-      include: { followedBy: { include: { follower: true } } },
+    const data = AppUtilities.removePasswordForAuthorSelect();
+    const followers = await this.prisma.follows.findMany({
+      where: { followingId: id },
+      include: { follower: { select: data } },
     });
     return followers;
   }

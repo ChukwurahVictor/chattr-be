@@ -13,8 +13,8 @@ import { AppUtilities } from '../app.utilities';
 import { PaginationSearchOptionsDto } from 'src/common/interfaces/pagination-search-options.dto';
 import { CrudService } from 'src/common/database/crud-service';
 import { PostMapType } from './post-maptype';
+
 export const roundsOfHashing = 10;
-// import { UpdatePostDto } from './dto/update-user.dto';
 
 @Injectable()
 export class PostsService extends CrudService<
@@ -22,13 +22,15 @@ export class PostsService extends CrudService<
   PostMapType
 > {
   private authorFields: Prisma.UserSelect = { password: false };
+
   constructor(private prisma: PrismaService) {
     super(prisma.post);
     this.authorFields = AppUtilities.removePasswordForAuthorSelect();
   }
 
+
   async createPost(createPostDto: CreatePostDto, user: User) {
-    const { categoryId, title, image, content } = createPostDto;
+    const { categoryId, title, image = '', content } = createPostDto;
     const authorId = user.id;
 
     const findAuthor = await this.prisma.user.findUnique({
@@ -84,12 +86,8 @@ export class PostsService extends CrudService<
     };
   }
 
-  async findAllPosts({
-    cursor,
-    direction,
-    size,
-    ...dto
-  }: PaginationSearchOptionsDto) {
+  async findAllPosts(options: PaginationSearchOptionsDto = {}) {
+    const { cursor, direction, size, ...dto } = options;
     const parsedQueryFilters = this.parseQueryFilter(dto, ['title', 'content']);
     const args: Prisma.PostFindManyArgs = {
       where: {
@@ -193,10 +191,7 @@ export class PostsService extends CrudService<
     const deletePost = await this.prisma.$transaction(async (prisma) => {
       await prisma.comment.deleteMany({
         where: {
-          OR: [
-            { postId: id },
-            { post: { authorId: post.authorId } }, // Deletes comments from the author
-          ],
+          postId: id,
         },
       });
 
@@ -280,7 +275,6 @@ export class PostsService extends CrudService<
   }
 
   private prismaClient: PrismaClient = new PrismaClient({
-    // log: ['query', 'info', 'warn', 'error'],
     datasources: {
       db: { url: process.env.DATABASE_URL },
     },

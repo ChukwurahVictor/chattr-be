@@ -9,6 +9,8 @@ import {
   Param,
   UseGuards,
   Query,
+  ValidationPipe,
+  UsePipes,
 } from '@nestjs/common';
 import { PostsService } from './posts.service';
 import { ResponseInterceptor } from 'src/interceptors/response.interceptor';
@@ -24,6 +26,7 @@ import { PaginationSearchOptionsDto } from 'src/common/interfaces/pagination-sea
 
 @ApiBearerAuth()
 @ApiTags('Posts')
+@UsePipes(new ValidationPipe({ transform: true }))
 @Controller('posts')
 @UseInterceptors(ResponseInterceptor)
 export class PostsController {

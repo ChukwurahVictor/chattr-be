@@ -4,6 +4,7 @@ import {
   HttpStatus,
   ConflictException,
   NotFoundException,
+  BadRequestException,
 } from '@nestjs/common';
 import { AppUtilities } from 'src/app.utilities';
 import { PrismaService } from 'src/prisma/prisma.service';
@@ -34,7 +35,8 @@ export class CategoriesService {
       const categories = await this.prisma.category.findMany();
       return categories;
     } catch (error) {
-      throw new HttpException(`${error.message}`, HttpStatus.BAD_REQUEST);
+      if (error instanceof HttpException) throw error;
+      throw new BadRequestException(error.message);
     }
   }
 
@@ -45,18 +47,33 @@ export class CategoriesService {
         include: {
           posts: {
             select: {
-              post: { include: { author: { select: this.authorFields } } },
+              post: {
+                include: {
+                  author: {
+                    select: this.authorFields,
+                  },
+                  likes: true,
+                  comments: {
+                    include: {
+                      user: {
+                        select: this.authorFields,
+                      },
+                    },
+                  },
+                },
+              },
             },
           },
         },
       });
 
       if (!category) {
-        throw new HttpException('Category not found.', HttpStatus.NOT_FOUND);
+        throw new NotFoundException('Category not found.');
       }
       return category;
     } catch (error) {
-      throw new HttpException(`${error.message}`, HttpStatus.BAD_REQUEST);
+      if (error instanceof HttpException) throw error;
+      throw new BadRequestException(error.message);
     }
   }
 
@@ -75,7 +92,7 @@ export class CategoriesService {
         where: { id },
       });
 
-      if (categoryExists.name === name) {
+      if (categoryExists && categoryExists.name === name) {
         throw new ConflictException('Category already exists.');
       }
 
@@ -84,7 +101,8 @@ export class CategoriesService {
         data: { name, updatedAt: moment().toISOString() },
       });
     } catch (error) {
-      throw new HttpException(`${error.message}`, HttpStatus.BAD_REQUEST);
+      if (error instanceof HttpException) throw error;
+      throw new BadRequestException(error.message);
     }
   }
 
@@ -111,16 +129,13 @@ export class CategoriesService {
         return updatedPost;
       });
 
-      const deletedCategory = await Promise.all(deleteCategoryInPost);
-      console.log(
-        '🚀 ~ file: categories.service.ts:112 ~ CategoriesService ~ deleteCategoryInPost ~ deleteCategoryInPost:',
-        deletedCategory,
-      );
+      await Promise.all(deleteCategoryInPost);
 
-      const deleteCategory = this.prisma.category.delete({ where: { id } });
+      const deleteCategory = await this.prisma.category.delete({ where: { id } });
       return deleteCategory;
     } catch (error) {
-      throw new HttpException(`${error.message}`, HttpStatus.BAD_REQUEST);
+      if (error instanceof HttpException) throw error;
+      throw new BadRequestException(error.message);
     }
   }
 }

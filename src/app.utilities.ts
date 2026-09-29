@@ -4,12 +4,16 @@ import * as bcrypt from 'bcrypt';
 @Injectable()
 export class AppUtilities {
   public static removeSensitiveData(object: any, remove: string) {
-    if (typeof object !== 'object') return;
-    const insensitiveData = object.map((obj) => {
-      const { [remove]: _, ...items } = obj;
-      return { ...items };
-    });
-    return insensitiveData;
+    if (!object || typeof object !== 'object') return object;
+    if (Array.isArray(object)) {
+      return object.map((obj) => {
+        if (!obj || typeof obj !== 'object') return obj;
+        const { [remove]: _, ...items } = obj;
+        return { ...items };
+      });
+    }
+    const { [remove]: _, ...items } = object;
+    return { ...items };
   }
 
   public static removePasswordForAuthorSelect(): Record<string, true> {

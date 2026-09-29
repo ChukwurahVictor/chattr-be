@@ -1,8 +1,13 @@
-import { Injectable, HttpException, HttpStatus } from '@nestjs/common';
+import {
+  Injectable,
+  NotFoundException,
+  ForbiddenException,
+} from '@nestjs/common';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { CreateCommentDto } from './dto/create-comment.dto';
 import * as moment from 'moment';
 import { User } from '@prisma/client';
+import { AppUtilities } from 'src/app.utilities';
 
 @Injectable()
 export class CommentsService {
@@ -14,7 +19,7 @@ export class CommentsService {
       where: { id: postId },
     });
     if (!findPost) {
-      throw new HttpException('Post not found', HttpStatus.NOT_FOUND);
+      throw new NotFoundException('Post not found');
     }
 
     return await this.prisma.comment.create({
@@ -24,21 +29,33 @@ export class CommentsService {
         user: { connect: { id: user.id } },
         updatedAt: moment().toISOString(),
       },
+      include: {
+        user: {
+          select: AppUtilities.removePasswordForAuthorSelect(),
+        },
+      },
     });
   }
-  async remove(id: string) {
+
+  async remove(id: string, user: User) {
     const findComment = await this.prisma.comment.findUnique({
-      where: { id: id },
+      where: { id },
+      include: { post: true },
     });
     if (!findComment) {
-      throw new HttpException('Comment not found', HttpStatus.NOT_FOUND);
+      throw new NotFoundException('Comment not found');
     }
 
-    const deleteComment = await this.prisma.comment.delete({
-      where: { id: id },
+    if (findComment.userId !== user.id && findComment.post.authorId !== user.id) {
+      throw new ForbiddenException(
+        'You do not have permission to delete this comment',
+      );
+    }
+
+    await this.prisma.comment.delete({
+      where: { id },
     });
 
-    if (!deleteComment) return 'Error deleting comment';
     return 'Comment deleted successfully';
   }
 }
