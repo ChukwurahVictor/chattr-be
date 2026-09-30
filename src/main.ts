@@ -1,3 +1,13 @@
+// Polyfill SlowBuffer for Node 22+ / 25+ runtimes where SlowBuffer was removed
+// eslint-disable-next-line @typescript-eslint/no-var-requires
+const nodeBuffer = require('buffer');
+if (!nodeBuffer.SlowBuffer) {
+  nodeBuffer.SlowBuffer = nodeBuffer.Buffer;
+}
+if (typeof (global as any).SlowBuffer === 'undefined') {
+  (global as any).SlowBuffer = nodeBuffer.Buffer;
+}
+
 import { INestApplication, ValidationPipe } from '@nestjs/common';
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
