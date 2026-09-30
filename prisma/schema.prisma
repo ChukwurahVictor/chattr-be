@@ -31,7 +31,7 @@ model Post {
   content    String
   image      String
   authorId   String
-  author     User               @relation(fields: [authorId], references: [id])
+  author     User               @relation(fields: [authorId], references: [id], onDelete: Cascade)
   likes      Reaction[]
   comments   Comment[]
   categories Posts_Categories[]
@@ -39,11 +39,13 @@ model Post {
   createdBy  String?            @db.Uuid
   updatedAt  DateTime           @default(now()) @updatedAt @db.Timestamptz(6)
   updatedBy  String?            @db.Uuid
+
+  @@index([authorId])
 }
 
 model Category {
   id        String             @id @default(uuid())
-  name      String
+  name      String             @unique
   posts     Posts_Categories[]
   createdAt DateTime           @default(now()) @db.Timestamptz(6)
   createdBy String?            @db.Uuid
@@ -52,9 +54,9 @@ model Category {
 }
 
 model Posts_Categories {
-  post       Post     @relation(fields: [postId], references: [id])
+  post       Post     @relation(fields: [postId], references: [id], onDelete: Cascade)
   postId     String
-  category   Category @relation(fields: [categoryId], references: [id])
+  category   Category @relation(fields: [categoryId], references: [id], onDelete: Cascade)
   categoryId String
   createdAt  DateTime @default(now()) @db.Timestamptz(6)
   createdBy  String?  @db.Uuid
@@ -62,12 +64,14 @@ model Posts_Categories {
   updatedBy  String?  @db.Uuid
 
   @@id([postId, categoryId])
+  @@index([categoryId])
+  @@index([postId])
 }
 
 model Follows {
-  follower    User     @relation("follower", fields: [followerId], references: [id])
+  follower    User     @relation("follower", fields: [followerId], references: [id], onDelete: Cascade)
   followerId  String
-  following   User     @relation("following", fields: [followingId], references: [id])
+  following   User     @relation("following", fields: [followingId], references: [id], onDelete: Cascade)
   followingId String
   createdAt   DateTime @default(now()) @db.Timestamptz(6)
   createdBy   String?  @db.Uuid
@@ -75,29 +79,38 @@ model Follows {
   updatedBy   String?  @db.Uuid
 
   @@id([followerId, followingId])
+  @@index([followerId])
+  @@index([followingId])
 }
 
 model Reaction {
   id        String   @id @default(uuid())
-  post      Post     @relation(fields: [postId], references: [id])
+  post      Post     @relation(fields: [postId], references: [id], onDelete: Cascade)
   postId    String
-  user      User     @relation(fields: [userId], references: [id])
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   userId    String
   createdAt DateTime @default(now()) @db.Timestamptz(6)
   createdBy String?  @db.Uuid
   updatedAt DateTime @default(now()) @updatedAt @db.Timestamptz(6)
   updatedBy String?  @db.Uuid
+
+  @@unique([userId, postId])
+  @@index([postId])
+  @@index([userId])
 }
 
 model Comment {
   id        String   @id @default(uuid())
-  post      Post     @relation(fields: [postId], references: [id])
+  post      Post     @relation(fields: [postId], references: [id], onDelete: Cascade)
   postId    String
   body      String
-  user      User     @relation(fields: [userId], references: [id])
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   userId    String
   createdAt DateTime @default(now()) @db.Timestamptz(6)
   createdBy String?  @db.Uuid
   updatedAt DateTime @default(now()) @updatedAt @db.Timestamptz(6)
   updatedBy String?  @db.Uuid
+
+  @@index([postId])
+  @@index([userId])
 }

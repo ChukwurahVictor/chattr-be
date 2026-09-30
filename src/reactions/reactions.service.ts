@@ -1,18 +1,21 @@
 import {
   Injectable,
-  HttpException,
-  HttpStatus,
   NotFoundException,
   ForbiddenException,
+  BadRequestException,
 } from '@nestjs/common';
 import { User } from '@prisma/client';
 import { PrismaService } from 'src/prisma/prisma.service';
+import { CreateReactionDto } from './dto/create-reaction.dto';
+import { AppUtilities } from 'src/app.utilities';
 
 @Injectable()
 export class ReactionsService {
   constructor(private prismaService: PrismaService) {}
 
-  async create(postId: string, user: User) {
+  async create(target: string | CreateReactionDto, user: User) {
+    const postId = typeof target === 'string' ? target : target.postId;
+
     const findPost = await this.prismaService.post.findUnique({
       where: { id: postId },
     });
@@ -26,10 +29,7 @@ export class ReactionsService {
       },
     });
     if (findReaction) {
-      throw new HttpException(
-        'Already reacted to post',
-        HttpStatus.BAD_REQUEST,
-      );
+      throw new BadRequestException('Already reacted to post');
     }
     return await this.prismaService.reaction.create({
       data: {
@@ -40,16 +40,14 @@ export class ReactionsService {
   }
 
   async getPostReactions(postId: string) {
-    const reactions = await this.prismaService.post.findUnique({
-      where: { id: postId },
-      include: { likes: true },
+    const reactions = await this.prismaService.reaction.findMany({
+      where: { postId },
+      include: {
+        user: {
+          select: AppUtilities.removePasswordForAuthorSelect(),
+        },
+      },
     });
-
-    if (!reactions) throw new NotFoundException('Reaction not found');
-
-    if (!reactions.likes.length)
-      throw new NotFoundException('No reactions found for this post');
-
     return reactions;
   }
 
@@ -65,6 +63,7 @@ export class ReactionsService {
         'You are not allowed to delete this reaction',
       );
 
-    return await this.prismaService.reaction.delete({ where: { id } });
+    await this.prismaService.reaction.delete({ where: { id } });
+    return 'Reaction successfully removed';
   }
 }

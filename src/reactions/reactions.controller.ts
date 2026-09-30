@@ -34,8 +34,8 @@ export class ReactionsController {
 
   @Post('/:id')
   @ResponseMessage({ message: 'Reaction created successfully' })
-  async createReaction(@Param('id') postId: string, @GetUser() userId: User) {
-    return await this.reactionsService.create(postId, userId);
+  async createReaction(@Param('id') postId: string, @GetUser() user: User) {
+    return await this.reactionsService.create(postId, user);
   }
 
   @Delete('/:id')

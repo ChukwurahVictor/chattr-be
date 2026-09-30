@@ -122,10 +122,6 @@ export class AuthService {
     }
 
     const hashedPassword = await bcrypt.hash(newPassword, roundsOfHashing);
-    console.log(
-      '🚀 ~ file: auth.service.ts:118 ~ AuthService ~ changePassword ~ hashedPassword:',
-      hashedPassword,
-    );
 
     const updatedUserPassword = await this.prisma.user.update({
       where: { id: userId },

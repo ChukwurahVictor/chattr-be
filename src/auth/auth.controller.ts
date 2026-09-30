@@ -43,12 +43,12 @@ export class AuthController {
   }
 
   @UseGuards(JwtAuthGuard)
-  @Patch('/:id/update-password')
+  @Patch('update-password')
   @ResponseMessage({ message: 'Password updated successfully' })
   changePassword(
-    @GetUser() userId: User,
+    @GetUser() user: User,
     @Body(ValidationPipe) updatePasswordDto: ChangePasswordDto,
   ) {
-    return this.authService.changePassword(userId, updatePasswordDto);
+    return this.authService.changePassword(user, updatePasswordDto);
   }
 }

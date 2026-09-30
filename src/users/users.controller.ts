@@ -16,6 +16,8 @@ import { ResponseMessage } from 'src/interceptors/response_message.decorator';
 import { JwtAuthGuard } from 'src/auth/jwt-auth.guard';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
+import { User } from '@prisma/client';
+import { GetUser } from 'src/common/decorators/get-user.decorator';
 
 @ApiBearerAuth()
 @ApiTags('Users')
@@ -57,18 +59,21 @@ export class UsersController {
     return this.usersService.getUserFollows(id);
   }
 
-  @Patch()
+  @Patch(':id')
+  @UseGuards(JwtAuthGuard)
   @ResponseMessage({ message: 'User updated Successfully' })
   async updateUser(
     @Param('id') id: string,
     @Body(ValidationPipe) updateUserDto: UpdateUserDto,
+    @GetUser() user: User,
   ) {
-    return this.usersService.updateUser(id, updateUserDto);
+    return this.usersService.updateUser(id, updateUserDto, user);
   }
 
-  @Delete()
+  @Delete(':id')
+  @UseGuards(JwtAuthGuard)
   @ResponseMessage({ message: 'Users removed Successfully' })
-  async removeUser(@Param('id') id: string) {
-    return this.usersService.removeUser(id);
+  async removeUser(@Param('id') id: string, @GetUser() user: User) {
+    return this.usersService.removeUser(id, user);
   }
 }
